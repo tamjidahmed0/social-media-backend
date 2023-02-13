@@ -1,0 +1,28 @@
+import { Router } from "express";
+import authenticate from "../middleware/authenticate.js";
+import * as controller from '../controllers/appController.js'
+
+
+// authenticate, (req, res)=>{res.setHeader('Content-Type', 'application/json');}, 
+
+const router = Router();
+
+//post req
+router.route('/register').post(controller.register)
+router.route('/otp').post(controller.otp)
+router.route('/login').post( controller.login  ) 
+router.route('/admin').post( controller.adminDashboard)
+router.route('/logout').post(controller.logOut) 
+router.route('/ip').post(controller.ip) 
+ 
+
+
+
+
+
+
+
+
+
+
+export default router;
