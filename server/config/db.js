@@ -1,10 +1,12 @@
-import  mongoose from 'mongoose';
+import  mongoose from 'mongoose'
+import * as dotenv from 'dotenv' 
+dotenv.config()
 mongoose.set('strictQuery', true);
-
+const URI = process.env.MONGO_URI
 
 const connectDB = async () => {
     try {
-        mongoose.connect('mongodb://127.0.0.1/form', {
+        mongoose.connect(URI  , {
             useNewUrlParser: true,
             UseUnifiedTopology: true
         })
