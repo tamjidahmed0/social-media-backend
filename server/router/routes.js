@@ -13,7 +13,7 @@ router.route('/otp').post(controller.otp)
 router.route('/login').post( controller.login  ) 
 router.route('/admin').post( controller.adminDashboard)
 router.route('/logout').post(controller.logOut) 
-router.route('/ip').post(controller.ip) 
+
  
 
 

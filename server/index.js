@@ -43,10 +43,10 @@ app.use(cookieParser());
 app.use(cors())
 
 
-app.use((req, res, next) => {
-    console.log(req.ip)
-    next()
-  })
+// app.use((req, res, next) => {
+//     console.log(req.ip)
+//     next()
+//   })
   
 
 

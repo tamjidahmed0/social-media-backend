@@ -193,10 +193,10 @@ export const logOut = (req ,res) =>{
 
 
  
-export const ip = app.use((req, res, next) => {
+// export const ip = app.use((req, res, next) => {
   
-    console.log(req.ip);
-    next();
-  });
+//     console.log(req.ip);
+//     next();
+//   });
 
 
