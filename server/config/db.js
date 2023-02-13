@@ -6,7 +6,7 @@ const URI = process.env.MONGO_URI
 
 const connectDB = async () => {
     try {
-        mongoose.connect('mongodb+srv://tamjid:OT9p0ox95yjwLjaQ@cluster0.errziq4.mongodb.net/?retryWrites=true&w=majority'  , {
+        mongoose.connect('mongodb+srv://tamjid:OT9p0ox95yjwLjaQ@cluster0.errziq4.mongodb.net/form?retryWrites=true&w=majority'  , {
             useNewUrlParser: true,
             UseUnifiedTopology: true
         })
