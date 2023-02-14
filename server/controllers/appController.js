@@ -33,7 +33,7 @@ export const register = async (req, res) =>{
       const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
       const otp = {
         code: randomNumber,
-        expiresAt: Date.now() + (5 * 60 * 1000) // OTP expires in 5 min
+        // expiresAt: Date.now() + (5 * 60 * 1000) // OTP expires in 5 min
       }
       //mail details
       const mailOptions = {
@@ -94,15 +94,15 @@ export const otp = async (req, res)=>{
       const {email} = req.session.userInfo
       console.log(sessOtp)
       if (req.session.user_id === email && sessOtp === otp  ) {
-      if(otpExp){
-        delete req.session.otp.code
-        res.status(401).send({msg:'otp expired!!'})
-      }else{
+
+        // delete req.session.otp.code
+        // res.status(401).send({msg:'otp expired!!'})
+
         res.status(201).send({msg:'successfully verified!'})
         console.log("OTP is valid")
         //id verified then save to database
         userData.save()
-      }
+
       }else { 
         res.status(401).send({msg:'OTP not matched'})
         console.log("OTP not matched")
