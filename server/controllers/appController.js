@@ -85,7 +85,7 @@ export const otp = async (req, res)=>{
    const {otp} = req.body
     try {
       //otp expiration
-      const otpExp = Date.now() >= req.session.otp.expiresAt
+      // const otpExp = Date.now() >= req.session.otp.expiresAt
       //session otp
       const sessOtp = req.session.otp.code
       //store data to a variables that comes from session
