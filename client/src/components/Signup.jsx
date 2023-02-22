@@ -6,65 +6,167 @@ import 'react-toastify/dist/ReactToastify.css'
 import { LockClosedIcon } from '@heroicons/react/20/solid'
 
 
+
+
+
+
+
+
 const Signup = () => {
-    const navigate = useNavigate()
-    
-    const [data, setData] = useState('')
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+const [formData, setForm] = useState({
+   username: '',
+   password: ''
+})
+
+const handleSubmit = (event) =>{
+    event.preventDefault(); 
+    const name = event.target.name
+    const value = event.target.value
+// console.log(name, value)
+    setForm((prev)=>{
+     return {...prev , [name]:value}
+ })
+
+}
+
+// console.log(formData.username)
+
+
+
+const submit = async(event) =>{
+  event.preventDefault(); 
+  try {
+    const{username, password} = formData
+
+    if(Object.keys(formData.username && formData.password).length ===0){
+
+      toast.error(`All fields Required!`, {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: true,
+              closeOnClick: true,
+              pauseOnHover: false,
+              draggable: true,
+              progress: undefined,
+            });
+    }else{
+      const login = process.env.REACT_APP_LOGIN_API
+      const response = await axios.post(login, {
+        username,
+        password
+      })
+
+
+
+        toast.success(`${response.data.msg}!`, {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: true,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+        progress: undefined,
+      });
+
+      // console.log(response.data.msg)
+
+      
+    }
+  
+   
+  } catch (error) {
+    error = new Error();
+      // toast.error(`${error.response.data.msg}`, {
+      //     position: "top-center",
+      //     autoClose: 5000,
+      //     hideProgressBar: true,
+      //     closeOnClick: true,
+      //     pauseOnHover: false,
+      //     draggable: true,
+      //     progress: undefined,
+      //   });
 
    
+  }
 
-    const handleSubmit = async (event) => {
-        event.preventDefault(); 
-    try {
-        const response = await axios.post('http://localhost:8000/api/login', {
-          // name,
-          username,
-          email,
-          password,
-        },{
-            headers: {
-                'Content-Type': 'application/json'
-              }
-        });
-        setData(response.data)
-        toast.success(`${data.msg}!`, {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        });
-        console.log(response.status);
-        if(response.status===200){
-          navigate('/dashboard') 
-        }else{
-          navigate('/')
-        }
+}
+
+
+
+
+// useEffect(async() => {
+// try {
+// const{username, password} = formData
+// const response = await axios.post('http://localhost:8000/api/login', {
+//   username,
+//   password
+// })
+
+
+// } catch (error) {
+  
+// }
+
+// }, [submit])
+
+
+
+
+
+    // const handleSubmits = async (event) => {
+    //     event.preventDefault(); 
+    // try {
+
+    //   const response = await axios.post('http://localhost:8000/api/login', {
+    //     // name,
+    //     username,
+    //     email,
+    //     password,
+    //   },{
+    //       headers: {
+    //           'Content-Type': 'application/json'
+    //         }
+    //   });
+
+
+
+
+
+    //   toast.success(`${response.data.msg}!`, {
+    //     position: "top-center",
+    //     autoClose: 5000,
+    //     hideProgressBar: true,
+    //     closeOnClick: true,
+    //     pauseOnHover: false,
+    //     draggable: true,
+    //     progress: undefined,
+    //   });
+
+    //   console.log(response.status);
+
+    //   console.log(response.data.msg)
+
+   
           
-      } catch (error) {
-
-        toast.error(`${error.response.data.msg}`, {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        });
-
-
-
-        console.log(error);
-      } 
+    //   } catch (error) {
+    //     toast.error(`${error.response.data.msg}`, {
+    //       position: "top-center",
+    //       autoClose: 5000,
+    //       hideProgressBar: true,
+    //       closeOnClick: true,
+    //       pauseOnHover: false,
+    //       draggable: true,
+    //       progress: undefined,
+    //     });
+      
+      
+      
+    //     console.log(error);
+ 
+    //   } 
         
   
-      }
+    //   }
 
   return (
     <>
@@ -84,7 +186,7 @@ const Signup = () => {
       
             </p>
           </div>
-          <form className="mt-8 space-y-6" action="#"  onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-6" action="#" >
             <input type="hidden" name="remember" defaultValue="true" />
             <div className="-space-y-px rounded-md shadow-sm">
       
@@ -94,14 +196,14 @@ const Signup = () => {
                 </label>
                 <input
                   id="email-address"
-                  name="name"
+                  name="username"
                   type="text"
                   autoComplete="email"
                   required
                   className="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   placeholder="Email or Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={formData.username}
+                  onChange={handleSubmit}
                 />
               </div>
               <div>
@@ -116,8 +218,8 @@ const Signup = () => {
                   required
                   className="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleSubmit}
                 />
               </div>
             </div>
@@ -144,7 +246,7 @@ const Signup = () => {
 
             <div>
               <button
-             
+                onClick={submit}
                 type="submit"
                 className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >

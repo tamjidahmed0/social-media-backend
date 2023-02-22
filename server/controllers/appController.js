@@ -121,7 +121,7 @@ export const login = async(req , res) =>{
     const {username, email, password} = req.body
     userschema.findOne({$or:[{username:username},{email:email}]}, async (err, user) =>{
     if(err) return res.status(400).send(err)
-    if(!user) return res.status(400).send({'msg':'user not founds'})
+    if(!user) return res.status(404).send({'msg':'user not founds'})
  
     //compare the entered password with database password
   bcrypt.compare(password, user.password ,(err , result)=>{
