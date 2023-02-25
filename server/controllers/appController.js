@@ -19,7 +19,7 @@ export const register = async (req, res) =>{
     //check username and email exist or not
       userschema.findOne({$or:[{username:username}, {email:email} ] }, (err , user)=>{
       if(err) return res.send(err)
-      if(user) return res.status(409).json({error: user.email === req.body.email ? 'Email aready exist': 'username already exist'})
+      if(user) return res.status(409).json({msg: user.email === req.body.email ? 'Email aready exist': 'username already exist'})
 
       //trim white space
       if(!email.trim() || !username.trim() || !password.trim()){
@@ -121,12 +121,13 @@ export const login = async(req , res) =>{
     const {username, email, password} = req.body
     userschema.findOne({$or:[{username:username},{email:email}]}, async (err, user) =>{
     if(err) return res.status(400).send(err)
-    if(!user) return res.status(404).send({'msg':'user not founds'})
+    if(!user) return res.status(404).send({'msg':'User not found!'})
  
     //compare the entered password with database password
   bcrypt.compare(password, user.password ,(err , result)=>{
       if(err) return res.status(400).send(err)
       if(!result) return res.status(400).json({ msg: "Invalid credentials" })
+      
       req.session.user_id = user._id
       res.json({ msg: " Logged In Successfully", sessions:req.session.user_id })
       

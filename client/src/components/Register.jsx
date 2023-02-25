@@ -4,69 +4,88 @@ import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { LockClosedIcon } from '@heroicons/react/20/solid'
-
+import { NavLink } from 'react-router-dom'
 
 const Register = () => {
-    const navigate = useNavigate()
-    
-    const [data, setData] = useState('')
-    const [username, setUsername] = useState('');
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
-   
-
-    const handleSubmit = async (event) => {
-        event.preventDefault(); 
-    try {
-        const response = await axios.post('http://localhost:8000/api/register', {
-          name,
-          username,
-          email,
-          password,
-        },{
-            headers: {
-                'Content-Type': 'application/json'
-              }
-        });
-        setData(response.data)
-        toast.success(`${data.msg}!`, {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        });
-        console.log(response.status);
-        if(response.status===201){
-          navigate('/dashboard') 
-        }else{
-          navigate('/')
-        }
-          
-      } catch (error) {
-
-        toast.error(`${error}`, {
-          position: "top-center",
-          autoClose: 5000,
-          hideProgressBar: true,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-          progress: undefined,
-        });
-
-
-
-        console.log(error);
-      } 
-        
+  const [formData, setForm] = useState({
+    name: '',
+    username:'',
+    email:'',
+    password:'',
+ 
+ })
+ 
+ const handleSubmit = (event) =>{
+     event.preventDefault(); 
+     const name = event.target.name
+     const value = event.target.value
+ // console.log(name, value)
+     setForm((prev)=>{
+      return {...prev , [name]:value}
+  })
   
-      }
+ 
+ }
 
+
+ const submit = (event) =>{
+  event.preventDefault()
+  const{name, username,email, password} = formData
+  const register = process.env.REACT_APP_REGISTER_API
+
+
+if(Object.keys(name && username && email && password ).length === 0){
+
+  toast.error(`All fildes are required`, {
+    position: "top-center",
+    autoClose: 5000,
+    hideProgressBar: true,
+    closeOnClick: true,
+    pauseOnHover: false,
+    draggable: true,
+    progress: undefined,
+  });
+
+
+}else{
+  axios.post(register, {
+    name,
+    username,
+    email,
+    password
+  }).then((response)=>{
+    
+       toast.success(`${response.data.msg +' '+ response.data.id}!`, {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+          });
+  
+  }).catch((error)=>{
+  
+      toast.error(`${error.response.data.msg}`, {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: true,
+            closeOnClick: true,
+            pauseOnHover: false,
+            draggable: true,
+            progress: undefined,
+          })
+  })
+}
+
+
+
+
+
+
+ }
+   
   return (
     <>
     <div className="flex min-h-full items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -79,13 +98,13 @@ const Register = () => {
             />
             <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
             
-              Sign in to your account
+              Resgister
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
       
             </p>
           </div>
-          <form className="mt-8 space-y-6" action="#"  onSubmit={handleSubmit}>
+          <form className="mt-8 space-y-6" >
             <input type="hidden" name="remember" defaultValue="true" />
             <div className=" rounded-md shadow-sm space-y-4">
       
@@ -102,8 +121,8 @@ const Register = () => {
                   required
                   className="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={formData.name}
+                  onChange={handleSubmit}
                 />
               </div>
               {/* username*/}
@@ -119,8 +138,8 @@ const Register = () => {
                   required
                   className="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   placeholder="Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={formData.username}
+                  onChange={handleSubmit}
                 />
               </div>
                 {/* email*/}
@@ -130,14 +149,14 @@ const Register = () => {
                 </label>
                 <input
                   id="email-address"
-                  name="email-address"
+                  name="email"
                   type="text"
                   autoComplete="email"
                   required
                   className="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={handleSubmit}
                 />
               </div>
 
@@ -154,8 +173,8 @@ const Register = () => {
                   required
                   className="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={handleSubmit}
                 />
               </div>
             </div>
@@ -173,16 +192,12 @@ const Register = () => {
                 </label>
               </div>
 
-              <div className="text-sm">
-                <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Forgot your password?
-                </a>
-              </div>
+             
             </div>
 
             <div>
               <button
-             
+             onClick={submit}
                 type="submit"
                 className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
@@ -197,7 +212,7 @@ const Register = () => {
                 <p href="#" className="font-medium text-black-600">
                   Already have an account?
                 </p> 
-                <a href='/' className='font-medium text-indigo-600 hover:text-indigo-500'>sign in</a>
+                <NavLink to={'/'} className='font-medium text-indigo-600 hover:text-indigo-500'>sign in</NavLink>
               </div>
           </form>
         </div>

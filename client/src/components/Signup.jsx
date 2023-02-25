@@ -4,6 +4,8 @@ import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { LockClosedIcon } from '@heroicons/react/20/solid'
+import Cookies from 'js-cookie'
+import { Link, NavLink } from 'react-router-dom'
 
 
 
@@ -13,6 +15,7 @@ import { LockClosedIcon } from '@heroicons/react/20/solid'
 
 
 const Signup = () => {
+const [datas, setdata] = useState(null)
 const [formData, setForm] = useState({
    username: '',
    password: ''
@@ -32,13 +35,12 @@ const handleSubmit = (event) =>{
 // console.log(formData.username)
 
 
-
-const submit = async(event) =>{
+const submit = (event) =>{
   event.preventDefault(); 
-  try {
+ 
     const{username, password} = formData
 
-    if(Object.keys(formData.username && formData.password).length ===0){
+    if(Object.keys(formData.username && formData.password).length === 0){
 
       toast.error(`All fields Required!`, {
               position: "top-center",
@@ -51,122 +53,56 @@ const submit = async(event) =>{
             });
     }else{
       const login = process.env.REACT_APP_LOGIN_API
-      const response = await axios.post(login, {
+    //   const instance = axios.create({
+    //     withCredentials: true,
+    //     baseURL:'http://localhost:3000',
+    //     headers:{
+    //       'Accept':'application/json'
+    //     }
+    // });
+    axios.post(login, {
         username,
         password
+      }).then((response)=>{
+        const setCookie = document.cookie
+        const cookievalue = setCookie.split('login_app=')[1]
+
+  
+       
+        const data = response.data.msg
+        toast.success(` ${data}!`, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+
+// toast.success('login success')
+      console.log(data)  
+
+      }).catch((error)=>{
+        toast.error(`${error.response.data.msg}`, {
+          position: "top-center",
+          autoClose: 5000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+  
+
+
       })
-
-
-
-        toast.success(`${response.data.msg}!`, {
-        position: "top-center",
-        autoClose: 5000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: false,
-        draggable: true,
-        progress: undefined,
-      });
-
-      // console.log(response.data.msg)
-
+   
       
     }
-  
-   
-  } catch (error) {
-    error = new Error();
-      // toast.error(`${error.response.data.msg}`, {
-      //     position: "top-center",
-      //     autoClose: 5000,
-      //     hideProgressBar: true,
-      //     closeOnClick: true,
-      //     pauseOnHover: false,
-      //     draggable: true,
-      //     progress: undefined,
-      //   });
-
-   
-  }
-
+    
 }
 
-
-
-
-// useEffect(async() => {
-// try {
-// const{username, password} = formData
-// const response = await axios.post('http://localhost:8000/api/login', {
-//   username,
-//   password
-// })
-
-
-// } catch (error) {
-  
-// }
-
-// }, [submit])
-
-
-
-
-
-    // const handleSubmits = async (event) => {
-    //     event.preventDefault(); 
-    // try {
-
-    //   const response = await axios.post('http://localhost:8000/api/login', {
-    //     // name,
-    //     username,
-    //     email,
-    //     password,
-    //   },{
-    //       headers: {
-    //           'Content-Type': 'application/json'
-    //         }
-    //   });
-
-
-
-
-
-    //   toast.success(`${response.data.msg}!`, {
-    //     position: "top-center",
-    //     autoClose: 5000,
-    //     hideProgressBar: true,
-    //     closeOnClick: true,
-    //     pauseOnHover: false,
-    //     draggable: true,
-    //     progress: undefined,
-    //   });
-
-    //   console.log(response.status);
-
-    //   console.log(response.data.msg)
-
-   
-          
-    //   } catch (error) {
-    //     toast.error(`${error.response.data.msg}`, {
-    //       position: "top-center",
-    //       autoClose: 5000,
-    //       hideProgressBar: true,
-    //       closeOnClick: true,
-    //       pauseOnHover: false,
-    //       draggable: true,
-    //       progress: undefined,
-    //     });
-      
-      
-      
-    //     console.log(error);
- 
-    //   } 
-        
-  
-    //   }
 
   return (
     <>
@@ -179,7 +115,7 @@ const submit = async(event) =>{
               alt="Your Company"
             />
             <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            
+          
               Sign in to your account
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
@@ -259,9 +195,9 @@ const submit = async(event) =>{
             </div>
             <div className="text-sm text-center">
                 <p href="#" className="font-medium text-black-600">
-                  Don't have any account?
+                  Don't have an account?
                 </p> 
-                <a href='signin' className='font-medium text-indigo-600 hover:text-indigo-500'>sign in</a>
+                <NavLink to={'register'} className='font-medium text-indigo-600 hover:text-indigo-500'>Register</NavLink>
               </div>
           </form>
         </div>
