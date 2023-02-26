@@ -23,7 +23,7 @@ export const register = async (req, res) =>{
 
       //trim white space
       if(!email.trim() || !username.trim() || !password.trim()){
-        return res.status(400).json({ error: "All fields are required and cannot be blank" });
+        return res.status(400).json({ error: "All fields are required and cannot be blank" })
       }else{
      //if username and email not exist then save to database
      req.session.userInfo = req.body
@@ -31,10 +31,11 @@ export const register = async (req, res) =>{
      if (req.session.userInfo) {
       // generate random 6 digit code
       const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
-      const otp = {
-        code: randomNumber,
-        // expiresAt: Date.now() + (5 * 60 * 1000) // OTP expires in 5 min
-      }
+      // const otp = {
+      //   code: randomNumber,
+      //   // expiresAt: Date.now() + (5 * 60 * 1000) // OTP expires in 5 min
+      // }
+      const otp = randomNumber
       //mail details
       const mailOptions = {
         from: 'chat app <nishitaislam2075@gmail.com>',
@@ -77,7 +78,7 @@ export const register = async (req, res) =>{
     res.status(500).send(error)
   }
 
-}
+} 
 
 
 //otp verification
@@ -87,7 +88,7 @@ export const otp = async (req, res)=>{
       //otp expiration
       // const otpExp = Date.now() >= req.session.otp.expiresAt
       //session otp
-      const sessOtp = req.session.otp.code
+      const sessOtp = req.session.otp 
       //store data to a variables that comes from session
       const userData = new userschema(req.session.userInfo) 
       //destructure email

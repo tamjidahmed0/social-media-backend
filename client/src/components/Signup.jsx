@@ -15,6 +15,7 @@ import { Link, NavLink } from 'react-router-dom'
 
 
 const Signup = () => {
+  const [loading, setloading] = useState([])
 const [datas, setdata] = useState(null)
 const [formData, setForm] = useState({
    username: '',
@@ -52,25 +53,80 @@ const submit = (event) =>{
               progress: undefined,
             });
     }else{
-      const login = process.env.REACT_APP_LOGIN_API
-    //   const instance = axios.create({
-    //     withCredentials: true,
-    //     baseURL:'http://localhost:3000',
-    //     headers:{
-    //       'Accept':'application/json'
-    //     }
-    // });
-    axios.post(login, {
-        username,
-        password
-      }).then((response)=>{
-        const setCookie = document.cookie
-        const cookievalue = setCookie.split('login_app=')[1]
+     const login = process.env.REACT_APP_LOGIN_API
+//       const instance = axios.create({
+//         withCredentials: true,
+      
+//         baseURL:'http://localhost:8000/api/login',
+//         headers:{
+//           'Accept':'application/json',
+        
+//         }
+//     });
 
+
+
+// instance.post(login, {
+//         username,
+//         password
+//       }).then((response)=>{
+//         const setCookie = document.cookie
+//         const cookievalue = setCookie.split('login=')[1]
+// console.log(cookievalue)
   
        
-        const data = response.data.msg
-        toast.success(` ${data}!`, {
+//         const data = response.data.msg
+//         toast.promise(` ${data}!`, {
+//           position: "top-center",
+//           autoClose: 5000,
+//           hideProgressBar: true,
+//           closeOnClick: true,
+//           pauseOnHover: false,
+//           draggable: true,
+//           progress: undefined,
+//           pending: "Promise is pending",
+//           success: "Promise  Loaded",
+//           error: "error"
+//         });
+//       console.log(response)
+
+// // toast.success('login success')
+       
+
+//       }).catch((error)=>{
+//         toast.error(`${error.response.data.msg}`, {
+//           position: "top-center",
+//           autoClose: 5000,
+//           hideProgressBar: true,
+//           closeOnClick: true,
+//           pauseOnHover: false,
+//           draggable: true,
+//           progress: undefined,
+//         });
+//   console.log(error)
+       
+
+//       })
+
+const promise = new Promise(async(resolve , reject)=>{
+
+  try {
+        const instance = axios.create({
+        withCredentials: true,
+      
+        baseURL:'http://localhost:8000/api/login',
+        headers:{
+          'Accept':'application/json',
+        
+        }
+    });
+    const response = await instance.post(login,{
+      username,
+      password
+    })
+
+
+        toast.success(` ${response.data.msg}!`, {
           position: "top-center",
           autoClose: 5000,
           hideProgressBar: true,
@@ -78,12 +134,13 @@ const submit = (event) =>{
           pauseOnHover: false,
           draggable: true,
           progress: undefined,
-        });
+        
+        })
 
-// toast.success('login success')
-      console.log(data)  
 
-      }).catch((error)=>{
+    console.log(response.data.msg)
+    resolve(response.data)
+  } catch (error) {
         toast.error(`${error.response.data.msg}`, {
           position: "top-center",
           autoClose: 5000,
@@ -93,12 +150,26 @@ const submit = (event) =>{
           draggable: true,
           progress: undefined,
         });
-  
+
+console.log(error.response.data.msg)
+
+    reject(error)
+  }
+
+})
 
 
-      })
+
+ toast.promise(promise, {
+    position: toast.POSITION.TOP_CENTER,
+    pending: 'Loading data...',
    
-      
+    closeOnClick: true,
+    pauseOnHover: false,
+    progress: false,
+    
+  });
+         
     }
     
 }
@@ -106,6 +177,7 @@ const submit = (event) =>{
 
   return (
     <>
+      <ToastContainer />
     <div className="flex min-h-full items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div>
@@ -122,7 +194,8 @@ const submit = (event) =>{
       
             </p>
           </div>
-          <form className="mt-8 space-y-6" action="#" >
+          <h1>{datas}</h1>
+          <form className="mt-8 space-y-6" action="#"  >
             <input type="hidden" name="remember" defaultValue="true" />
             <div className="-space-y-px rounded-md shadow-sm">
       
@@ -191,7 +264,7 @@ const submit = (event) =>{
                 </span>
                 Sign in
               </button>
-              <ToastContainer />
+            
             </div>
             <div className="text-sm text-center">
                 <p href="#" className="font-medium text-black-600">

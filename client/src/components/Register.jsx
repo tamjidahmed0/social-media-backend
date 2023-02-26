@@ -1,5 +1,6 @@
 import React ,{useState, useEffect} from 'react'
-import { useNavigate } from 'react-router'
+import {  useNavigate } from 'react-router'
+
 import axios from 'axios'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -7,6 +8,7 @@ import { LockClosedIcon } from '@heroicons/react/20/solid'
 import { NavLink } from 'react-router-dom'
 
 const Register = () => {
+  const navigate = useNavigate()
   const [formData, setForm] = useState({
     name: '',
     username:'',
@@ -48,25 +50,82 @@ if(Object.keys(name && username && email && password ).length === 0){
 
 
 }else{
-  axios.post(register, {
-    name,
-    username,
-    email,
-    password
-  }).then((response)=>{
+  // axios.post(register, {
+  //   name,
+  //   username,
+  //   email,
+  //   password
+  // }).then((response)=>{
     
-       toast.success(`${response.data.msg +' '+ response.data.id}!`, {
-            position: "top-center",
-            autoClose: 5000,
-            hideProgressBar: true,
-            closeOnClick: true,
-            pauseOnHover: false,
-            draggable: true,
-            progress: undefined,
-          });
+  //      toast.success(`${response.data.msg +' '+ response.data.id}!`, {
+  //           position: "top-center",
+  //           autoClose: 5000,
+  //           hideProgressBar: true,
+  //           closeOnClick: true,
+  //           pauseOnHover: false,
+  //           draggable: true,
+  //           progress: undefined,
+  //         })
+  //         const setCookie = document.cookie
+  //       const cookievalue = setCookie.split('login_app=')[1]
+  //       console.log(cookievalue)
+
+
+  //       //  navigate('/otp')
+   
+  // }).catch((error)=>{
   
-  }).catch((error)=>{
-  
+  //     toast.error(`${error.response.data.msg}`, {
+  //           position: "top-center",
+  //           autoClose: 5000,
+  //           hideProgressBar: true,
+  //           closeOnClick: true,
+  //           pauseOnHover: false,
+  //           draggable: true,
+  //           progress: undefined,
+  //         })
+
+  //         console.log(error.response.data.msg)
+  // })
+
+
+
+
+
+const promise = new Promise(async(resolve, reject)=>{
+  try {
+    const instance = axios.create({
+      withCredentials: true,
+    
+      baseURL:'http://localhost:8000/api/login',
+      headers:{
+        'Accept':'application/json',
+      
+      }
+  })
+    const response = await instance.post(register, {
+      name,
+      username,
+      email,
+      password
+    })
+
+
+    toast.success(` ${response.data.msg}!`, {
+      position: "top-center",
+      autoClose: 5000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      progress: undefined,
+    
+    })
+
+    console.log(response.data.msg)
+    resolve(response.data)
+  } catch (error) {
+
       toast.error(`${error.response.data.msg}`, {
             position: "top-center",
             autoClose: 5000,
@@ -76,7 +135,23 @@ if(Object.keys(name && username && email && password ).length === 0){
             draggable: true,
             progress: undefined,
           })
-  })
+
+    reject(error)
+  }
+})
+
+
+toast.promise(promise, {
+  position: toast.POSITION.TOP_CENTER,
+  pending: 'Loading data...',
+ 
+  closeOnClick: true,
+  pauseOnHover: false,
+  progress: false,
+  
+})
+
+
 }
 
 

@@ -24,12 +24,12 @@ const port = process.env.PORT || 8000
 
 const app = express()
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    // res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-  });
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//     // res.header('Access-Control-Allow-Credentials', 'true');
+//     next();
+//   });
 
 
 
@@ -48,7 +48,7 @@ app.get('*', (req, res) => {
 
 //use session for security
 app.use(session({
-    key: 'login_app', 
+    key: 'login', 
     secret: process.env.SESSION_SECRET ,
     resave: false,
     saveUninitialized: true,
@@ -58,15 +58,15 @@ app.use(session({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-//use cors
-// app.use(cors({
-//   origin: 'http://localhost:3000',
-//   credentials:true,
+// use cors
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials:true, 
   
-// }))
+}))
 
 
-app.use(cors())
+// app.use(cors())
 
 // app.get('/',(req, res)=>{
 //   res.cookie('name', 'tamjid', {sameSite:'strict', path:'/', expires:new Date(new Date().getTime() + 1 * 60 * 1000)})

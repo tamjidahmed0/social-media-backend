@@ -1,6 +1,6 @@
 import React from 'react'
 import { BrowserRouter , Routes , Route , Navigate } from 'react-router-dom'
-import {Signup, Register, Dashboard} from '../components'
+import {Signup, Register, Dashboard, Otp} from '../components'
 import PrivateRoutes from './PrivateRoutes'
 
 const routes = () => {
@@ -18,6 +18,7 @@ const routes = () => {
      
         <Route element={<Signup/>} path='/' />
         <Route element={<Register/>} path='/Register' />
+        <Route element={<Otp/>} path='/otp' />
     </Routes>
     </BrowserRouter>
     
