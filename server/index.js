@@ -52,7 +52,7 @@ app.use(session({
     secret: process.env.SESSION_SECRET ,
     resave: false,
     saveUninitialized: true,
-    cookie:{secure:false, maxAge: 15*60*1000, httpOnly:true},
+    cookie:{secure:true, maxAge: 15*60*1000, httpOnly:true}
     
 }))
 
