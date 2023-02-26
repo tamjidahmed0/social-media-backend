@@ -122,7 +122,7 @@ const promise = new Promise(async(resolve, reject)=>{
     
     })
 
-    console.log(response.data.msg)
+    navigate('/otp')
     resolve(response.data)
   } catch (error) {
 

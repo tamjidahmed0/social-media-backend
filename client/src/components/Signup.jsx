@@ -138,7 +138,7 @@ const promise = new Promise(async(resolve , reject)=>{
         })
 
 
-    console.log(response.data.msg)
+   
     resolve(response.data)
   } catch (error) {
         toast.error(`${error.response.data.msg}`, {
@@ -151,7 +151,7 @@ const promise = new Promise(async(resolve , reject)=>{
           progress: undefined,
         });
 
-console.log(error.response.data.msg)
+
 
     reject(error)
   }
