@@ -23,7 +23,7 @@ export const register = async (req, res) =>{
 
       //trim white space
       if(!email.trim() || !username.trim() || !password.trim()){
-        return res.status(400).json({ error: "All fields are required and cannot be blank" })
+        return res.status(400).json({ msg: "All fields are required and cannot be blank" })
       }else{
      //if username and email not exist then save to database
      req.session.userInfo = req.body
@@ -122,12 +122,12 @@ export const login = async(req , res) =>{
     const {username, email, password} = req.body
     userschema.findOne({$or:[{username:username},{email:email}]}, async (err, user) =>{
     if(err) return res.status(400).send(err)
-    if(!user) return res.status(404).send({'msg':'User not found!'})
+    if(!user) return res.status(404).send({'msg':'Username or Password Incorrect'})
  
     //compare the entered password with database password
   bcrypt.compare(password, user.password ,(err , result)=>{
       if(err) return res.status(400).send(err)
-      if(!result) return res.status(400).json({ msg: "Invalid credentials" })
+      if(!result) return res.status(400).json({ msg: "Username or Password Incorrect" })
       
       req.session.user_id = user._id
       res.json({ msg: " Logged In Successfully", sessions:req.session.user_id })
