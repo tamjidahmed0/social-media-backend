@@ -111,16 +111,16 @@ const submit = (event) =>{
 const promise = new Promise(async(resolve , reject)=>{
 
   try {
-        const instance = axios.create({
-        withCredentials: true,
+    //     const instance = axios.create({
+    //     withCredentials: true,
       
-        baseURL:'http://localhost:8000/api/login',
-        headers:{
-          'Accept':'application/json',
+    //     baseURL:'http://localhost:8000/api/login',
+    //     headers:{
+    //       'Accept':'application/json',
         
-        }
-    });
-    const response = await instance.post(login,{
+    //     }
+    // });
+    const response = await axios.post(login,{
       username,
       password
     })

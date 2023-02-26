@@ -59,14 +59,14 @@ app.use(session({
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 // use cors
-app.use(cors({
-  origin: 'http://localhost:3000',
-  credentials:true, 
+// app.use(cors({
+//   origin: 'http://localhost:3000',
+//   credentials:true, 
   
-}))
+// }))
 
 
-// app.use(cors())
+app.use(cors())
 
 // app.get('/',(req, res)=>{
 //   res.cookie('name', 'tamjid', {sameSite:'strict', path:'/', expires:new Date(new Date().getTime() + 1 * 60 * 1000)})

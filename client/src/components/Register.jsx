@@ -94,16 +94,16 @@ if(Object.keys(name && username && email && password ).length === 0){
 
 const promise = new Promise(async(resolve, reject)=>{
   try {
-    const instance = axios.create({
-      withCredentials: true,
+  //   const instance = axios.create({
+  //     withCredentials: true,
     
-      baseURL:'http://localhost:8000/api/login',
-      headers:{
-        'Accept':'application/json',
+  //     baseURL:'http://localhost:8000/api/login',
+  //     headers:{
+  //       'Accept':'application/json',
       
-      }
-  })
-    const response = await instance.post(register, {
+  //     }
+  // })
+    const response = await axios.post(register, {
       name,
       username,
       email,
