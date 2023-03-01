@@ -160,15 +160,15 @@ const promise = new Promise(async(resolve , reject)=>{
 
 
 
-//  toast.promise(promise, {
-//     position: toast.POSITION.TOP_CENTER,
-//     pending: 'Loading data...',
+ toast.promise(promise, {
+    position: toast.POSITION.TOP_CENTER,
+    pending: 'Loading data...',
    
-//     closeOnClick: true,
-//     pauseOnHover: false,
-//     progress: false,
+    closeOnClick: true,
+    pauseOnHover: false,
+    progress: false,
     
-//   })
+  })
 
 
 
