@@ -1,12 +1,13 @@
 import  mongoose from 'mongoose'
+
 import * as dotenv from 'dotenv' 
 dotenv.config()
 mongoose.set('strictQuery', true);
 const URI = process.env.MONGO_URI
 
-const connectDB = async () => {
+ const connectDB = async () => {
     try {
-        mongoose.connect('mongodb+srv://tamjid:OT9p0ox95yjwLjaQ@cluster0.errziq4.mongodb.net/form?retryWrites=true&w=majority'  , {
+        mongoose.connect(URI  , {
             useNewUrlParser: true,
             UseUnifiedTopology: true
         })
@@ -19,5 +20,8 @@ const connectDB = async () => {
 
 }
 
-export default connectDB;
 
+
+
+
+export default connectDB

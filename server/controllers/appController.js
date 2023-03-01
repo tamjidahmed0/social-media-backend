@@ -1,4 +1,8 @@
 import fs from 'fs'
+import Agenda from 'agenda'
+import pkg from 'agenda'; 
+const { Job } = pkg;
+import userOtp from '../models/otp.js'
 //import schema
 import userschema from '../models/user.js'
 //import bcrypt for password hass or compire
@@ -10,7 +14,7 @@ import jwt  from 'jsonwebtoken'
 import express from 'express'
 const app = express()
 
-
+// const agenda = new Agenda({ db: { address: process.env.MONGO_URI, collection:'Expires' },  maxAgendaJobsAgeMS: 7000 })
 
 //post request for registration
 export const register = async (req, res) =>{
@@ -31,11 +35,25 @@ export const register = async (req, res) =>{
      if (req.session.userInfo) {
       // generate random 6 digit code
       const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
-      // const otp = {
-      //   code: randomNumber,
-      //   // expiresAt: Date.now() + (5 * 60 * 1000) // OTP expires in 5 min
-      // }
+
       const otp = randomNumber
+      const token = jwt.sign({
+        username : username
+    }, process.env.JWT_SECRET , { expiresIn : "3min"});
+    
+      const userotp = new userOtp({
+        name:name,
+        username:username,
+        email:email,
+        password:password,
+        otp: otp,
+        token:token
+      })
+
+
+      userotp.save()
+
+
       //mail details
       const mailOptions = {
         from: 'chat app <nishitaislam2075@gmail.com>',
@@ -50,7 +68,7 @@ export const register = async (req, res) =>{
       return;
       }
       //dynamic code replace
-      mailOptions.html = data.replace(/{OTP}/g, otp.code).replace(/{NAME}/g, name)
+      mailOptions.html = data.replace(/{OTP}/g, otp).replace(/{NAME}/g, name)
       //send mail
       nodemailerConfig.transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
@@ -61,12 +79,8 @@ export const register = async (req, res) =>{
       });
 
       } )
-      //store otp to session variables
-      req.session.otp = otp
-      //store email to session variables
-      req.session.user_id = email
-      res.status(201).send({msg:'An OTP sent to your email!', id: req.session.user_id})
-      console.log(req.session.otp)
+      res.status(201).send({msg:'An OTP sent to your email!', otpPage:true, token: token})
+      console.log(otp)
      } else { 
       res.status(401).send({msg:'OTP not sent, something wrong!'})
      }
@@ -83,36 +97,162 @@ export const register = async (req, res) =>{
 
 //otp verification
 export const otp = async (req, res)=>{
-   const {otp} = req.body
-    try {
-      //otp expiration
-      // const otpExp = Date.now() >= req.session.otp.expiresAt
-      //session otp
-      const sessOtp = req.session.otp 
-      //store data to a variables that comes from session
-      const userData = new userschema(req.session.userInfo) 
-      //destructure email
-      const {email} = req.session.userInfo
-      console.log(sessOtp)
-      if (req.session.user_id === email && sessOtp === otp  ) {
 
-        // delete req.session.otp.code
-        // res.status(401).send({msg:'otp expired!!'})
+  try {
 
-        res.status(201).send({msg:'successfully verified!'})
-        console.log("OTP is valid")
-        //id verified then save to database
-        userData.save()
+      if(req.headers.authorization === undefined){
+        res.status(400).send({msg:'Need token'})
+      }else{
+        const { otp} = req.body
+        let token
+        const {authorization} = req.headers
+        token = authorization.split(' ')[1]
+      
+        userOtp.findOne({ token:token }, (err, users) => {
+          if(err) return res.send('err')
+          if(users){
+      
+          if(users.token === token) {
+                bcrypt.compare(otp.toString(), users.otp , (err, result)=>{
+                  if(err) return res.status(400).send('error')
+                  if(result){
+                    
+                   userOtp.findOneAndDelete({token:token}, (err, success)=>{
+                    if(err) return res.status(400).send({msg:'Error'})
+                    if(success){
+                   const userData = new userschema({ 
+                      name:success.name,
+                      username:success.username,
+                      password:success.password,
+                      
+                  
+                    })
+                    
+                    userData.save((err,saved)=>{
+                      if(err) return res.status(400).send({msg:'Error'})
+                      if(saved){
+                        res.status(201).send({msg:'verified'})
+                        console.log(saved)
+                      }
+                    })
+      
+                    }
+                   }) 
+      
+                  }else{
+                    res.status(404).send({msg:'invalid code'})
+                    
+                  }
+                })
+                  
+          }
+      
+        }else{
+          res.status(404).send({msg:'inauthentic user'})
+        }
+      
+        })
+        
+      } 
 
-      }else { 
-        res.status(401).send({msg:'OTP not matched'})
-        console.log("OTP not matched")
-      }
     } catch (error) {
+     
       console.log(error)
     }
       
 }
+
+
+//Resend OTP
+
+export const resendotp = async(req, res)=>{
+  try {
+    if(req.headers.authorization === undefined){
+      res.status(400).send({msg:'Need token'})
+    }else{
+      
+    let token
+    const {authorization} = req.headers
+    token = authorization.split(' ')[1]
+  
+    const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
+  
+    const otp = randomNumber.toString()
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(otp, salt);
+
+   userOtp.findOne({token:token}, (err, found)=>{
+    if(err) return res.send({msg: 'err'})
+    if(found){
+      if(found.token === token){
+        userOtp.findOneAndUpdate({token:token}, {$set:{otp:hash}}, (err, update)=>{
+          if(err) return res.status(400).send({msg:'Error'})
+          if(update){
+
+            const mailOptions = {
+              from: 'chat app <nishitaislam2075@gmail.com>',
+              to: `${found.email}`,
+              subject: 'New OTP for your account',
+             
+            }
+            //custom email template
+            fs.readFile('./config/nodemailer-template/otp-template.html' , 'utf-8' , (err , data)=>{
+            if (err) {
+            console.error(err);
+            return;
+            }
+            //dynamic code replace
+            mailOptions.html = data.replace(/{OTP}/g, otp).replace(/{NAME}/g, found.name)
+            //send mail
+            nodemailerConfig.transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent: ' + info.response);
+            }
+            });
+      
+            } )
+
+
+
+
+
+            res.status(201).send({msg:'A new OTP sent to your Email'})
+            
+          }else{
+            res.status(201).send({msg:'There was an error!'})
+          }
+        }) 
+      }
+    }else{
+      res.status(409).send({msg: 'inauthentic user'})
+    }
+   })
+
+
+
+    }
+    
+
+  
+
+  } catch (error) { 
+    console.log(error)
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 //post request for login
@@ -127,7 +267,7 @@ export const login = async(req , res) =>{
     //compare the entered password with database password
   bcrypt.compare(password, user.password ,(err , result)=>{
       if(err) return res.status(400).send(err)
-      if(!result) return res.status(400).json({ msg: "Username or Password Incorrect" })
+      if(!result) return res.status(400).json({ msg: "Username or Password Incorrect" }) 
       
       req.session.user_id = user._id
       res.json({ msg: " Logged In Successfully", sessions:req.session.user_id })

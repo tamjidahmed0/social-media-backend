@@ -10,7 +10,8 @@ const router = Router();
 //post req
 router.route('/register').post(controller.register)
 router.route('/otp').post(controller.otp)
-router.route('/login').post( controller.login  ) 
+router.route('/resendotp').post(controller.resendotp)
+router.route('/login').post(authenticate, controller.login  ) 
 router.route('/admin').post( controller.adminDashboard)
 router.route('/logout').post(controller.logOut) 
 
