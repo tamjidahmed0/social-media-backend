@@ -12,8 +12,8 @@ router.route('/register').post(controller.register)
 router.route('/otp').post(controller.otp)
 router.route('/resendotp').post(controller.resendotp)
 router.route('/login').post(authenticate, controller.login  ) 
-router.route('/admin').post( controller.adminDashboard)
-router.route('/logout').post(controller.logOut) 
+// router.route('/admin').post( controller.adminDashboard)
+// router.route('/logout').post(controller.logOut) 
 
  
 

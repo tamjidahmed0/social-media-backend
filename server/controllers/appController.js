@@ -30,9 +30,9 @@ export const register = async (req, res) =>{
         return res.status(400).json({ msg: "All fields are required and cannot be blank" })
       }else{
      //if username and email not exist then save to database
-     req.session.userInfo = req.body
-     console.log(req.session.userInfo)
-     if (req.session.userInfo) {
+    //  req.session.userInfo = req.body
+    //  console.log(req.session.userInfo)
+     if (req.body) {
       // generate random 6 digit code
       const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
 
@@ -310,28 +310,28 @@ export const login = async(req , res) =>{
 
 // admin dashbord
 
-export const adminDashboard = async(req, res)=>{
-  try {
-    const {email} = req.session.userInfo
-    if ( req.session.user_id || req.session.user_id === email && req.session.otp.code ) {
-      console.log(req.session.user_id)
-      res.send('Welcome to the dashboard');
-    } else {
-      res.send('Please login to access the dashboard');
-    }
-  } catch (error) {
-    console.log(error)
-    res.send(error)
-  }
-}
+// export const adminDashboard = async(req, res)=>{
+//   try {
+//     const {email} = req.session.userInfo
+//     if ( req.session.user_id || req.session.user_id === email && req.session.otp.code ) {
+//       console.log(req.session.user_id)
+//       res.send('Welcome to the dashboard');
+//     } else {
+//       res.send('Please login to access the dashboard');
+//     }
+//   } catch (error) {
+//     console.log(error)
+//     res.send(error)
+//   }
+// }
 
-export const logOut = (req ,res) =>{
-   req.session.destroy((error)=>{
+// export const logOut = (req ,res) =>{
+//    req.session.destroy((error)=>{
     
-    res.clearCookie('login')
-    res.send('logout successfull')
-   });
-}
+//     res.clearCookie('login')
+//     res.send('logout successfull')
+//    });
+// }
 
 
  
