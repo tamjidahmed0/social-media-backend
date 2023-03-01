@@ -47,14 +47,14 @@ app.get('*', (req, res) => {
 
 
 //use session for security
-app.use(session({
-    key: 'login', 
-    secret: process.env.SESSION_SECRET ,
-    resave: false,
-    saveUninitialized: true,
-    cookie:{secure:true, maxAge: 15*60*1000, httpOnly:true}
+// app.use(session({
+//     key: 'login', 
+//     secret: process.env.SESSION_SECRET ,
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie:{secure:true, maxAge: 15*60*1000, httpOnly:true}
     
-}))
+// }))
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
