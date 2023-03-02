@@ -121,6 +121,7 @@ export const otp = async (req, res)=>{
                    const userData = new userschema({ 
                       name:success.name,
                       username:success.username,
+                      email:success.email,
                       password:success.password,
                       
                   
