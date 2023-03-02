@@ -35,10 +35,10 @@ const userOtp = new schema({
     // }
     
 
-}, {timestamps:true})
+})
 
 
-userOtp.index({createdOn: 1}, {expireAfterSeconds: 60 * 6})
+// userOtp.index({createdOn: 1}, {expireAfterSeconds: 60 * 6})
 
 
 userOtp.pre('save', async function (next){
