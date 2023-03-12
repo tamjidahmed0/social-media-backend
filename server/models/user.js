@@ -21,6 +21,9 @@ const UserSchema = new schema({
         type:String,
         require:true
     },
+    refreshToken:{
+        type:String
+    },
     date:{
         type:Date,
         default:Date.now

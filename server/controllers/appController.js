@@ -3,12 +3,12 @@ import fs from 'fs'
 import userOtp from '../models/otp.js'
 //import schema
 import userschema from '../models/user.js'
-//import bcrypt for password hass or compire
+//import bcrypt for password hash or compire
 import bcrypt from 'bcrypt'
 //import nodemail
 import nodemailerConfig from '../config/node-mailer.js'
 //import jwt token
-import jwt  from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
 
 
 
@@ -33,7 +33,7 @@ export const register = async (req, res) =>{
       //jwt token sign
       const token = jwt.sign({
         username : username
-    }, process.env.JWT_SECRET , { expiresIn : "3min"});
+    }, process.env.JWT_SECRET , { expiresIn : "3min"})
       
       //store all data to user otp collection
       const userotp = new userOtp({
@@ -103,13 +103,20 @@ export const otp = async (req, res)=>{
         let token
         const {authorization} = req.headers
         token = authorization.split(' ')[1]
-        //find the user in otp collection using token
-        userOtp.findOne({ token:token }, (err, users) => {
+
+        //verify the jwt token with jwt secret
+        jwt.verify(token, process.env.JWT_SECRET, (err, user)=>{
+          if(err) return res.status(400).send({msg:'OTP expired'})
+          if(user){
+
+
+          //find the user in otp collection using token
+          userOtp.findOne({ token:token }, (err, users) => {
           if(err) return res.send('err')
           if(users){
           //if find then match the token
           if(users.token === token) {
-                //compare the pass that store in database as a encryped form
+                //compare the pass that store in database as an encryped form
                 bcrypt.compare(otp.toString(), users.otp , (err, result)=>{
                   if(err) return res.status(400).send('error')
                   if(result){
@@ -117,20 +124,29 @@ export const otp = async (req, res)=>{
                    userOtp.findOneAndDelete({token:token}, (err, success)=>{
                     if(err) return res.status(400).send({msg:'Error'})
                     if(success){
-                  //after delete store data to main collection
+                  //Refresh Token
+                    const refreshToken = jwt.sign({
+                        username : success.username
+                    }, process.env.JWT_SECRET_REFRESH , { expiresIn : "1y"});
+                  //after delete stored data to main collection
                    const userData = new userschema({ 
                       name:success.name,
                       username:success.username,
                       email:success.email,
                       password:success.password,
-                      
+                      refreshToken: refreshToken
                   
                     })
                     //saved user
                     userData.save((err,saved)=>{
                       if(err) return res.status(400).send({msg:'Error'})
                       if(saved){
-                        res.status(201).send({msg:'verified' , otpPage:false})
+                         //jwt access token sign
+                          const token = jwt.sign({
+                          username : saved.username
+                          }, process.env.JWT_SECRET , { expiresIn : "3min"});
+
+                        res.status(201).send({msg:'verified' , otpPage:false, AccessToken:token, RefreshToken:refreshToken})
                         console.log(saved)
                       }
                     })
@@ -151,6 +167,18 @@ export const otp = async (req, res)=>{
         }
       
         })
+            
+
+          }else{
+
+          
+
+
+           res.status(400).send({msg:'otp expired'})
+          }
+        })
+
+      
         
       } 
 
@@ -173,6 +201,7 @@ export const resendotp = async(req, res)=>{
     let token
     const {authorization} = req.headers
     token = authorization.split(' ')[1]
+
     //generate random number
     const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
     //store it in as a string form
@@ -186,8 +215,12 @@ export const resendotp = async(req, res)=>{
     if(found){
       //if token matched
       if(found.token === token){
+            //jwt resend token generate
+      const resendtoken = jwt.sign({
+      username : found.username
+      }, process.env.JWT_SECRET , { expiresIn : "3min"});
         //update the user
-        userOtp.findOneAndUpdate({token:token}, {$set:{otp:hash}}, (err, update)=>{
+        userOtp.findOneAndUpdate({token:token}, {$set:{otp:hash, token:resendtoken}}, (err, update)=>{
           if(err) return res.status(400).send({msg:'Error'})
           if(update){
             //send new otp using mail
@@ -215,10 +248,10 @@ export const resendotp = async(req, res)=>{
             });
       
             })
-            res.status(201).send({msg:'A new OTP sent to your Email'})
+            res.status(201).send({msg:'A new OTP sent to your Email', resendTokn: resendtoken})
             
           }else{
-            res.status(201).send({msg:'There was an error!'})
+            res.status(400).send({msg:'There was an error!'})
           }
         }) 
       }
@@ -244,7 +277,7 @@ export const login = async(req , res) =>{
     const {username, email, password} = req.body
     userschema.findOne({$or:[{username:username},{email:email}]}, async (err, user) =>{
     if(err) return res.status(400).send(err)
-    if(!user) return res.status(404).send({'msg':'Username or Password Incorrect'})
+    if(!user) return res.status(404).send({msg:'User not found'})
  
     //compare the entered password with database password
   bcrypt.compare(password, user.password ,(err , result)=>{
@@ -252,7 +285,7 @@ export const login = async(req , res) =>{
       if(!result) return res.status(400).json({ msg: "Username or Password Incorrect" }) 
       
       // req.session.user_id = user._id
-      res.json({ msg: " Logged In Successfully"})
+      res.json({ msg: `welcome back ${user.name}!` , token:true})
       
       // if(result) {
        

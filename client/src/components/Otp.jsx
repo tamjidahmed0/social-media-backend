@@ -1,11 +1,16 @@
 import React, {useState} from 'react'
 import axios from 'axios'
+import { useSelector } from 'react-redux'
+import { setOtp } from '../features/otpRedirect'
 
 
 
 
 
 const Otp = () => {
+  const token = JSON.parse(localStorage.getItem('token'))
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  console.log(token)
     const [digits, setDigits] = useState({
       digit1:'',
       digit2:'',
@@ -36,7 +41,7 @@ console.log(joinValues)
         event.preventDefault();
         
         // Submit the OTP code using Axios
-        axios.post('http://localhost:8000/api/otp', { code:joinValues })
+        axios.post('http://localhost:8000/api/otp', { code:joinValues.toString() })
           .then(response => {
             console.log(response.data);
             // Handle the success response here

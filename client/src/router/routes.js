@@ -1,25 +1,37 @@
 import React from 'react'
 import { BrowserRouter , Routes , Route , Navigate } from 'react-router-dom'
-import {Signup, Register, Dashboard, Otp} from '../components'
+import {Signup, Register, Dashboard, Otp, Team} from '../components'
 import PrivateRoutes from './PrivateRoutes'
-
+import OtpRoutes from './otpRoutes'
+import Layout from '../components/Layout'
 const routes = () => {
+ 
+
+
   let auth = {'token':true}
   return (
     <>
     <BrowserRouter>
+  
     <Routes>
-        {/* <Route path='/' element={<Signup />}/>
-        <Route path='/signin' element={<Register/>}/>
-        <Route path='/dashboard' element={<Dashboard/>}/> */}
+
+   
+
+ 
         <Route element ={<PrivateRoutes/>}>
         <Route path='/dashboard' element={<Dashboard/>}/> 
+        <Route path='/team' element={<Team/>}/> 
         </Route>
-     
+    
         <Route element={<Signup/>} path='/' />
         <Route element={<Register/>} path='/Register' />
-        <Route element={<Otp/>} path='/otp' />
+        
+        <Route element={<OtpRoutes/>} >
+          <Route element={<Otp/>} path='/otp' />
+        </Route>
+       
     </Routes>
+   
     </BrowserRouter>
     
     </>
