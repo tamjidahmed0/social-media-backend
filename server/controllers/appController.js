@@ -98,12 +98,12 @@ export const otp = async (req, res)=>{
         res.status(400).send({msg:'Need token'})
       }else{
         //collect otp from body
-      const {otp} = req.body
+      const otp = req.body
         //split the bearer token
         let token
         const {authorization} = req.headers
         token = authorization.split(' ')[1]
-console.log(otp)
+       
         //verify the jwt token with jwt secret
         jwt.verify(token, process.env.JWT_SECRET, (err, user)=>{
           if(err) return res.status(400).send({msg:'OTP expired'})
@@ -116,8 +116,12 @@ console.log(otp)
           if(users){
           //if find then match the token
           if(users.token === token) {
+
+            if(Object.keys(otp.code).length === 0){
+              res.status(400).send({msg:'please enter code'})
+            }else{
                 //compare the pass that store in database as an encryped form
-                bcrypt.compare(otp, users.otp , (err, result)=>{
+                bcrypt.compare(otp.code, users.otp , (err, result)=>{
                   if(err) return res.status(400).send({msg:'error'})
                   if(result){
                   //if success then find it and delete using token
@@ -159,11 +163,15 @@ console.log(otp)
                     
                   }
                 })
+            }
+
+
+
                   
           }
       
         }else{
-          res.status(404).send({msg:'Inauthentic user'})
+          res.status(404).send({msg:'OTP expired or invalid!'})
         }
       
         })
