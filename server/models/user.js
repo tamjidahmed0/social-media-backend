@@ -4,6 +4,9 @@ const schema = mongoose.Schema;
 
 
 const UserSchema = new schema({
+    profilePic:{
+        type:String
+    },
     name:{
         type:String,
         require:true

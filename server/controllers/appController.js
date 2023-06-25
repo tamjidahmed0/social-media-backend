@@ -3,6 +3,13 @@ import fs from 'fs'
 import userOtp from '../models/otp.js'
 //import schema
 import userschema from '../models/user.js'
+
+import conversationSchema from '../models/conversation.js'
+
+import messageSchema from '../models/message.js'
+import profileSchema from '../models/profile.js'
+import disableSchema from '../models/disable.js'
+
 //import bcrypt for password hash or compire
 import bcrypt from 'bcrypt'
 //import nodemail
@@ -11,82 +18,94 @@ import nodemailerConfig from '../config/node-mailer.js'
 import jwt from 'jsonwebtoken'
 
 
+import moment from 'moment'
 
-// user Registration
-export const register = async (req, res) =>{
-  try {
-     const {name, email, username, password } = req.body
-    //check username and email exist or not
-      userschema.findOne({$or:[{username:username}, {email:email} ] }, (err , user)=>{
-      if(err) return res.send(err)
-      if(user) return res.status(409).json({msg: user.email === req.body.email ? 'Email aready exist': 'username already exist'})
+import multer from 'multer';
 
-      //trim white space
-      if(!email.trim() || !username.trim() || !password.trim()){
-        return res.status(400).json({ msg: "All fields are required and cannot be blank" })
-      }else{
-     //if username and email not exist then save to database
-     if (req.body) {
-      // generate random 6 digit code
-      const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
-      const otp = randomNumber
-      //jwt token sign
-      const token = jwt.sign({
-        username : username
-    }, process.env.JWT_SECRET , { expiresIn : "3min"})
+
+
+
+
+
+
+
+
+
+// // user Registration
+// export const register = async (req, res) =>{
+//   try {
+//      const {name, email, username, password } = req.body
+//     //check username and email exist or not
+//       userschema.findOne({$or:[{username:username}, {email:email} ] }, (err , user)=>{
+//       if(err) return res.send(err)
+//       if(user) return res.status(409).json({msg: user.email === req.body.email ? 'Email aready exist': 'username already exist'})
+
+//       //trim white space
+//       if(!email.trim() || !username.trim() || !password.trim()){
+//         return res.status(400).json({ msg: "All fields are required and cannot be blank" })
+//       }else{
+//      //if username and email not exist then save to database
+//      if (req.body) {
+//       // generate random 6 digit code
+//       const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000
+//       const otp = randomNumber
+//       //jwt token sign
+//       const token = jwt.sign({
+//         username : username
+//     }, process.env.JWT_SECRET , { expiresIn : "3min"})
       
-      //store all data to user otp collection
-      const userotp = new userOtp({
-        name:name,
-        username:username,
-        email:email,
-        password:password,
-        otp: otp,
-        token:token
-      })
+//       //store all data to user otp collection
+//       const userotp = new userOtp({
+//         name:name,
+//         username:username,
+//         email:email,
+//         password:password,
+//         otp: otp,
+//         token:token
+//       })
 
-      //after add info save it for temporary
-      userotp.save()
+//       //after add info save it for temporary
+//       userotp.save()
 
-      //mail details
-      const mailOptions = {
-        from: `chat app <${process.env.GMAIL}>`,
-        to: `${email}`,
-        subject: 'OTP for your account',
+//       //mail details
+//       const mailOptions = {
+//         from: `chat app <${process.env.GMAIL}>`,
+//         to: `${email}`,
+//         subject: 'OTP for your account',
        
-      }
-      //custom email template
-      fs.readFile('./config/nodemailer-template/otp-template.html' , 'utf-8' , (err , data)=>{
-      if (err) {
-      console.error(err);
-      return;
-      }
-      //dynamic code replace in html template
-      mailOptions.html = data.replace(/{OTP}/g, otp).replace(/{NAME}/g, name)
-      //send mail
-      nodemailerConfig.transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log('Email sent: ' + info.response);
-      }
-      });
+//       }
+//       //custom email template
+//       fs.readFile('./config/nodemailer-template/otp-template.html' , 'utf-8' , (err , data)=>{
+//       if (err) {
+//       console.error(err);
+//       return;
+//       }
+//       //dynamic code replace in html template
+//       mailOptions.html = data.replace(/{OTP}/g, otp).replace(/{NAME}/g, name)
+//       //send mail
+//       nodemailerConfig.transporter.sendMail(mailOptions, (error, info) => {
+//       if (error) {
+//         console.log(error);
+//       } else {
+//         console.log('Email sent: ' + info.response);
+//       }
+//       });
 
-      } )
-      res.status(201).send({msg:'An OTP sent to your email!', otpPage:true, token: token})
-      console.log(otp)
-     } else { 
-      res.status(401).send({msg:'OTP not sent, something wrong!'})
-     }
-      }
+//       } )
+//       res.status(201).send({msg:'An OTP sent to your email!', otpPage:true, token: token})
+//       console.log(otp)
+//      } else { 
+//       res.status(401).send({msg:'OTP not sent, something wrong!'})
+//      }
+//       }
 
-    })
+//     })
 
-  } catch (error) {
-    res.status(500).send(error)
-  }
+//   } catch (error) {
+//     res.status(500).send(error)
+//   }
 
-} 
+// } 
 
 
 //otp verification
@@ -106,10 +125,10 @@ export const otp = async (req, res)=>{
        
         //verify the jwt token with jwt secret
         jwt.verify(token, process.env.JWT_SECRET, (err, user)=>{
-          if(err) return res.status(400).send({msg:'OTP expired'})
+          if(err) return res.status(400).send({msg:'OTP expired'}) 
           if(user){
 
-
+console.log(otp.otp)
           //find the user in otp collection using token
           userOtp.findOne({ token:token }, (err, users) => {
           if(err) return res.send('err')
@@ -117,11 +136,11 @@ export const otp = async (req, res)=>{
           //if find then match the token
           if(users.token === token) {
 
-            if(Object.keys(otp.code).length === 0){
+            if(Object.keys(otp.otp).length === 0){
               res.status(400).send({msg:'please enter code'})
             }else{
                 //compare the pass that store in database as an encryped form
-                bcrypt.compare(otp.code, users.otp , (err, result)=>{
+                bcrypt.compare(otp.otp, users.otp , (err, result)=>{
                   if(err) return res.status(400).send({msg:'error'})
                   if(result){
                   //if success then find it and delete using token
@@ -149,6 +168,16 @@ export const otp = async (req, res)=>{
                           const token = jwt.sign({
                           username : saved.username
                           }, process.env.JWT_SECRET , { expiresIn : "3min"});
+
+
+                          const profile = new profileSchema({
+                            Id:saved._id,
+                            profilePic:'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+                            name:saved.name,
+                            username:saved.username
+                          })
+
+                          profile.save()
 
                         res.status(201).send({msg:'verified' , otpPage:false, AccessToken:token, RefreshToken:refreshToken})
                         console.log(saved)
@@ -278,90 +307,1298 @@ export const resendotp = async(req, res)=>{
 
 
 
-//post request for login
-export const login = async(req , res) =>{
-  
-  try {
-    const {username, email, password} = req.body
-    userschema.findOne({$or:[{username:username},{email:email}]}, async (err, user) =>{
-    if(err) return res.status(400).send(err)
-    if(!user) return res.status(404).send({msg:'User not found'})
+// //post request for login
+// export const login = async(req , res) =>{
+//   const domain = req.hostname
+//   try {
+//     const {username, email, password} = req.body
+
  
-    //compare the entered password with database password
-  bcrypt.compare(password, user.password ,(err , result)=>{
-      if(err) return res.status(400).send(err)
-      if(!result) return res.status(400).json({ msg: "Username or Password Incorrect" }) 
+//   // const disable = await disableSchema.findOne({
+//   //   username: username
+//   // })
+
+
+
+// const user = await userschema.findOne({
+//   $or:[
+//     {username:username},
+//     {email:email}
+//   ]
+// })
+
+
+
+
+
+// if(user){
+//   const encPass = await bcrypt.compare(password, user.password)
+//   if(encPass){
+
+//   const disable = await disableSchema.findOne({
+//     username: username
+//   })
+
+//   if(disable){
+
+//     res.status(403).send({title:disable.Title, text: disable.Text})
+
+//   }else{
+
+//     const resendtoken = jwt.sign({
+//     username : username
+//     }, process.env.JWT_SECRET , { expiresIn : "1y"});
+
+//     const profile = await profileSchema.findOne({Id:user._id})
+
+//     const profilePic = profile ? profile.profilePic : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+
+//     res.json({id:user._id, profile: profilePic, name: `${user.name}` ,username:user.username, email:user.email, token:resendtoken})
+
+//   }
+
+
+
+
+
+
+//   }else{
+//     res.status(401).send({msg:'username or password incorrect'})
+//   }
+
+// }else{
+//   console.log('faild')
+//   res.status(401).send({msg:'username or password incorrect'})
+// }
+
+
+
+// //  if(disable){
+// //   if(Object.keys(username && password ).length === 0){
+// //     res.status(400).send({msg:'password should not be empty'})
+// //   }else{
+// //     res.status(403).send({title:disable.Title, text: disable.Text})
+// //   }
+  
+// //  }else{
+// //   userschema.findOne({$or:[{username:username},{email:email}]}, async (err, user) =>{
+// //     if(err) return res.status(400).send(err)
+// //     if(!user) return res.status(404).send({msg:'User not found'})
+ 
+// //     //compare the entered password with database password
+// //   bcrypt.compare(password, user.password ,async(err , result)=>{
+// //       if(err) return res.status(400).send(err)
+// //       if(!result) return res.status(400).json({ msg: "Username or Password Incorrect" }) 
+
+
+// //    const profile = await profileSchema.findOne({Id:user._id})
+
+// //    const resendtoken = jwt.sign({
+// //     username : username
+// //     }, process.env.JWT_SECRET , { expiresIn : "1y"});
+   
+// //     const profilePic = profile ? profile.profilePic : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+// //       // req.session.user_id = user._id
+// //       res.json({id:user._id, profile: profilePic, name: `${user.name}` ,username:user.username, email:user.email, token:resendtoken})
       
-      // req.session.user_id = user._id
-      res.json({ msg: `welcome back ${user.name}!` , token:true})
-      
-      // if(result) {
+// //       // if(result) {
        
-      //   res.status(201).send({'msg':'login success'})
-      //   req.session.user_id = user._id
-      //  console.log(req.session.user_id)
+// //       //   res.status(201).send({'msg':'login success'})
+// //       //   req.session.user_id = user._id
+// //       //  console.log(req.session.user_id)
       
-      // }else{
-      //    res.status(401).send({'msg':'incorrect username or password'})
+// //       // }else{
+// //       //    res.status(401).send({'msg':'incorrect username or password'})
         
 
-      // } 
+// //       // } 
       
-    })
+// //     })
 
-  // bcrypt.compare(password, user.password).then((isMatch)=>{
-  //   if(!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
-  //   req.session.user_id = user._id
-  //   console.log(req.session.user_id)
-  //   res.json({ msg: " Logged In Successfully" });
-  // })
+// //   // bcrypt.compare(password, user.password).then((isMatch)=>{
+// //   //   if(!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+// //   //   req.session.user_id = user._id
+// //   //   console.log(req.session.user_id)
+// //   //   res.json({ msg: " Logged In Successfully" });
+// //   // })
 
 
 
 
      
-    }) 
+// //     })
+
+// //  }
+
+
+
+ 
 
    
-  } catch (error) {
+//   } catch (error) {
      
-    res.send(error)
+//     res.send(error)
+//    }
+// }
+
+
+
+// // admin dashbord
+
+// // export const adminDashboard = async(req, res)=>{
+// //   try {
+// //     const {email} = req.session.userInfo
+// //     if ( req.session.user_id || req.session.user_id === email && req.session.otp.code ) {
+// //       console.log(req.session.user_id)
+// //       res.send('Welcome to the dashboard');
+// //     } else {
+// //       res.send('Please login to access the dashboard');
+// //     }
+// //   } catch (error) {
+// //     console.log(error)
+// //     res.send(error)
+// //   }
+// // }
+
+// // export const logOut = (req ,res) =>{
+// //    req.session.destroy((error)=>{
+    
+// //     res.clearCookie('login')
+// //     res.send('logout successfull')
+// //    });
+// // }
+
+
+ 
+// // export const ip = app.use((req, res, next) => {
+  
+// //     console.log(req.ip);
+// //     next();
+// //   });
+
+
+export const getInfo = async(req, res)=>{
+  const id = req.params.userId
+   try {
+    userschema.findById(id, (err , success)=>{
+      if(err) return res.status(400).send({msg:'error'})
+      if(success){
+        res.status(200).send({msg:success.name})
+      }
+    })
+   } catch (error) {
+    
    }
 }
 
 
 
-// admin dashbord
 
-// export const adminDashboard = async(req, res)=>{
+
+
+// export const conversations = async(req, res)=>{
+//   const newConversation = new conversationSchema({
+//     members: [req.body.senderId, req.body.receiverId],
+//   })
 //   try {
-//     const {email} = req.session.userInfo
-//     if ( req.session.user_id || req.session.user_id === email && req.session.otp.code ) {
-//       console.log(req.session.user_id)
-//       res.send('Welcome to the dashboard');
-//     } else {
-//       res.send('Please login to access the dashboard');
-//     }
+//     const savedConversation = await newConversation.save();
+//     res.status(200).json(savedConversation);
 //   } catch (error) {
-//     console.log(error)
-//     res.send(error)
+//     res.status(500).json(err);
 //   }
 // }
 
-// export const logOut = (req ,res) =>{
-//    req.session.destroy((error)=>{
-    
-//     res.clearCookie('login')
-//     res.send('logout successfull')
-//    });
-// }
 
+
+// export const getUser = async(req , res)=>{
+//   const userId = req.params.userId;
+
+// try {
+
+
+// const conversation = await conversationSchema.find({
+// conversationFor: userId
+// })
+
+
+
+
+
+
+
+
+
+
+// //   const conversation = await conversationSchema.find({
+
+// //     // members: {$in:[userId]} 
+// //     // members: { $elemMatch: { $eq: userId } }
+// //     members: {$in:[userId]},
+    
+// //   }).sort({ date: -1 })
+
+
+// //   console.log(conversation, 'conversation')
+
+// let names =[];
+
+
+// // for(const item of conversation) {
+// //   console.log(item);
+
+// //   const createdAt = moment(item.date);
+// //   const now = moment();
+// //   const duration = moment.duration(now.diff(createdAt));
+
+// //   const years = duration.years();
+// //   const months = duration.months();
+// //   const days = duration.days();
+
+// //   console.log(Math.abs(months));
+
+// //   const date = moment(item.date);
+
+// //   const getFormattedDate = (date) => {
+// //     if (Math.abs(years)) {
+// //       return `${date.format('MMM DD YYYY')}`;
+// //     } else if (Math.abs(months)) {
+// //       return `${date.format('MMM DD')}`;
+// //     } else if (days) {
+// //       return `${date.format('ddd')}`;
+// //     } else {
+// //       return date.format('hh:mm A');
+// //     }
+// //   };
+
+// //   console.log(getFormattedDate(date));
+
+// //   // const profile = await profileSchema.findOne({
+// //   //   Id:item.members[1]
+// //   // });
+// //   // console.log(profile, 'come from profile');
+
+// //   return {
+// //     name: item.receiverName,
+// //     Id: item.members[1],
+// //     convText: item.text,
+// //     date: getFormattedDate(date)
+// //   };
+// // };
+
+
+
+
+// // res.status(200).send(results) 
+
+
+
+
+
+// // conversation.map(async item =>{ 
+// //   console.log(item)
+  
+
+// //   const createdAt = moment(item.date);
+// //   const now = moment()
+// //   const duration = moment.duration(now.diff(createdAt));
+
+
+// //   const years = duration.years(); 
+// //   const months = duration.months();
+// //   const days = duration.days(); 
+
+
+
+// //   console.log(Math.abs(months))
+
+// //   const date = moment(item.date);
+// //   const getFormattedDate = (date)=>{
+// //     if( Math.abs(years) ){
+// //       return `${date.format('MMM DD YYYY')}`
+// //     }
+// //     else if(Math.abs(months)){
+// //       return `${date.format('MMM DD')} `
+// //     }
+// //     else if(days){         
+// //       return `${date.format('ddd')}`
+// //     }else {
+// //       return date.format('hh:mm A')
+// //     }
+
+   
+// // }
+
+// // console.log(getFormattedDate(date))
+
+// // // const profile = await profileSchema.findOne({
+// // //   Id:item.members[1]
+// // // })
+// // // console.log(profile, 'come from profile')
+
+// // names.push({ name: item.receiverName, Id: item.members[1], convText:item.text, date:getFormattedDate(date)})
+
+// // console.log(names)
+// // res.status(200).send(names);
 
  
-// export const ip = app.use((req, res, next) => {
-  
-//     console.log(req.ip);
-//     next();
+// // })
+
+
+// await Promise.all(conversation.map(async (item) => {
+//   const createdAt = moment(item.date);
+//   const now = moment();
+//   const duration = moment.duration(now.diff(createdAt));
+
+//   const years = duration.years();
+//   const months = duration.months();
+//   const days = duration.days();
+
+//   const date = moment(item.date);
+//   const getFormattedDate = (date) => {
+//     if (Math.abs(years)) {
+//       return `${date.format('MMM DD YYYY')}`;
+//     } else if (Math.abs(months)) {
+//       return `${date.format('MMM DD')}`;
+//     } else if (days) {
+//       return `${date.format('ddd')}`;
+//     } else {
+//       return date.format('hh:mm A');
+//     }
+//   };
+
+
+//  let profiles
+
+//  if(item.members[0]=== userId){
+//   profiles = await profileSchema.findOne({
+//     Id:item.members[1]
+//   })
+
+//  }
+
+// if(item.members[1]=== userId){
+//   profiles = await profileSchema.findOne({
+//     Id:item.members[0]
+//   })
+// }
+
+//  console.log(profiles)
+
+
+
+// // console.log(profiles.profilePic, 'come from profile')
+
+// const profilePic = profiles ? profiles.profilePic : '';
+// // console.log(profiless)
+
+//   names.push({
+//     profile: profilePic,
+//     name: item.receiverName,
+//     Id: item.members[1],
+//     convText: item.text,
+//     date: getFormattedDate(date)
 //   });
 
 
+
+  
+
+
+
+
+  
+// }));
+
+// console.log(names);
+// res.status(200).send(names);
+
+
+// // for(const item of conversation) {
+// // // console.log(item)
+
+// //   const createdAt = moment(item.date);
+// //   const now = moment()
+// //   const duration = moment.duration(now.diff(createdAt));
+
+
+// //   const years = duration.years();
+// //   const months = duration.months();
+// //   const days = duration.days(); 
+
+
+
+// //   console.log(Math.abs(months))
+
+// //   const date = moment(item.date);
+// //   const getFormattedDate = (date)=>{
+// //     if( Math.abs(years) ){
+// //       return `${date.format('MMM DD YYYY')}`
+// //     }
+// //     else if(Math.abs(months)){
+// //       return `${date.format('MMM DD')} `
+// //     }
+// //     else if(days){         
+// //       return `${date.format('ddd')}`
+// //     }else {
+// //       return date.format('hh:mm A')
+// //     }
+
+   
+// // }
+
+// // console.log(getFormattedDate(date))
+
+
+// // // if(item.conversationFor === req.params.userId){
+// // //   const profile = await profileSchema.findOne({
+// // //   Id:item.members[1]
+// // // })
+// // //   names.push({profile:profile.profilePic, name:item.receiverName, Id: item.members[1],convText:item.text, date:getFormattedDate(date)});
+// // // }else{
+// // //       const profile = await profileSchema.findOne({
+// // //         Id:item.members[0]
+// // //       })
+     
+ 
+// // //       console.log(item.text)
+// // //       names.push({profile:profile.profilePic, name:item.senderName, Id: item.members[0], convText:item.text, date:getFormattedDate(date)});
+
+// // // }
+
+// // // const profile = await profileSchema.findOne({
+// // //   Id:userId
+// // // })
+
+// // // console.log(profile)
+
+
+
+// //     if(item.members[0]=== req.params.userId ){
+
+// // const profile = await profileSchema.findOne({
+// //   Id:item.members[1]
+// // })
+
+
+      
+// //       console.log(item.text)   
+// //       names.push({profile:profile.profilePic, name:item.receiverName, Id: item.members[1],convText:item.text, date:getFormattedDate(date)});
+// //     }else{
+// //       const profile = await profileSchema.findOne({
+// //         Id:item.members[0]
+// //       })
+     
+ 
+// //       console.log(item.text)
+// //       names.push({profile:profile.profilePic, name:item.senderName, Id: item.members[0], convText:item.text, date:getFormattedDate(date)});  
+// //     }
+
+
+// // console.log(names)
+
+// //   }
+//   // res.status(200).send(names);
+  
+// } catch (error) {
+//   res.status(500).json(error);
+// }
+
+
+
+// }
+
+
+
+
+
+
+
+
+
+//send msg
+export const message = async(req, res)=> {
+  const {senderId, receiverId, text} = req.body
+  // console.log(req.body)
+
+  const newMessage = new messageSchema({
+    senderId,
+    receiverId,
+    text
+  });  
+
+  try {
+    const profPic = await profileSchema.find({
+      $or:[
+        {Id:senderId},
+        {Id:receiverId}
+      ]
+    })
+
+   
+
+    newMessage.save((err, success)=>{
+      if(err) return res.status(400).send({msg:'error'})
+      if(success){
+        userschema.find(
+          { 
+            $or: [ 
+              { _id: success.senderId },
+              { _id: success.receiverId}
+                 ] }
+           , async(err, findUser)=>{
+          if(err) return res.status(400).send({msg:'error'})
+          if(findUser){
+
+            console.log(findUser, 'come from finduser line 561')
+
+           
+
+
+          //  conversationSchema.find({
+          //   $or:[
+          //     {conversationFor: success.senderId},
+          //     {conversationFor: success.receiverId}
+          //   ]
+          
+          //   }, async(err , find)=>{
+          //     if(err) return res.status(400).send({msg:'error'})
+          //     if(!find.length){
+
+          //       console.log(find, 'come from finduser line 576')
+          
+
+          //    console.log('it is running')   
+ 
+
+
+
+
+
+          //     const conversation = new conversationSchema ({
+          //       Name:'',
+          //       conversationFor: '',
+          //       userId:'',
+          //       text:''
+          //     })
+
+          //     const newConversation = new conversationSchema ({
+          //       Name: '',
+          //       conversationFor:'',
+          //       userId:'',
+          //       text:''
+  
+          //      })
+
+          //    if(findUser[0]._id.toString() === senderId ){
+          //     console.log(success.text)
+          //     // conversation.senderName = findUser[0].name;
+          //     // conversation.receiverName = findUser[1].name; 
+          //     conversation.Name = findUser[0].name
+          //     conversation.conversationFor= findUser[1]._id
+          //     conversation.userId = findUser[0]._id
+          //     conversation.text = success.text
+
+
+
+
+          //    newConversation.Name = findUser[1].name;
+          //    newConversation.conversationFor= findUser[0]._id
+          //    newConversation.userId= findUser[1]._id
+          //    newConversation.text = success.text
+          //   }else{
+          //     console.log(success.text)
+          //     // conversation.senderName = findUser[1].name;
+          //     conversation.Name = findUser[1].name;
+          //     conversation.conversationFor= findUser[0]._id
+          //     conversation.userId = findUser[0]._id
+          //     conversation.text = success.text
+
+
+         
+
+
+          //    newConversation.Name = findUser[0].name;
+          //    newConversation.conversationFor= findUser[1]._id
+          //    newConversation.userId= findUser[0]._id
+          //    newConversation.text = success.text
+
+
+          //    conversationSchema.findOne({
+
+          //    })
+
+
+          //   }
+
+          //   conversation.save()
+          //   newConversation.save()
+          //   res.status(200).json(success);
+          //   console.log(success)
+
+
+
+          //     }else{
+          //       console.log(find , 'come from find line 638')
+
+
+          //       const filter = {
+          //         $or: [
+          //           { conversationFor: success.senderId },
+          //           { conversationFor: success.receiverId }
+          //         ]
+          //       };
+
+          //       const update = {
+          //         $set: {
+          //           text: success.text,
+          //           // updatedAt: new Date()
+          //         }
+          //       };
+                
+
+
+
+          //       try {
+          //         const result = await conversationSchema.updateMany(filter, update);
+
+          //         res.status(200).json(success);
+                
+          //         console.log(`Successfully updated documents`);
+          //       } catch (error) {
+          //         console.error('Error occurred while updating documents:', error);
+          //       }
+
+
+
+
+                // if(find[1].conversationFor === senderId){
+
+                //   await conversationSchema.findOneAndUpdate({
+                //     $or:[
+                //      {conversationFor:success.senderId},
+                //      {conversationFor:success.receiverId}
+                      
+                //     ]
+                //   },{
+                //     text: success.text,
+                    
+                //   })
+                  
+                 
+
+
+                // }else {
+                //   await conversationSchema.findOneAndUpdate({
+                //     $or:[
+                //       {conversationFor:success.senderId},
+                //      {conversationFor:success.receiverId}
+                      
+                //     ]
+                //   },{
+                //     text: success.text,
+                    
+                //   })
+                // }
+                
+
+                // res.status(200).json(success);
+               
+
+
+            //   }
+            // })
+        
+
+
+
+        conversationSchema.find({ $or:[
+          {members: {$all:[success.senderId, success.receiverId]}},
+          {members: {$all:[success.receiverId, success.senderId]}}
+          
+        ] }, async(err, find)=>{
+          if(err) return res.status(400).send({msg:'error'}) 
+           console.log(find, 'come from ffind')
+          if(find.length ){
+            const originalText = success.text
+            const trimText = originalText.slice(0, 10)
+           await conversationSchema.findOneAndUpdate({
+              $and:[
+                {members: {$in:[success.senderId]}},
+                {members: {$in:[success.receiverId]}}
+                
+              ]
+            },{
+              text: success.text,
+              
+            })
+            
+            res.status(200).json(success);           
+            }
+
+          else{  //
+            const originalText = success.text
+            const trimText = originalText.slice(0, 10)
+            const conversation = new conversationSchema({
+             
+              senderName: '',
+              receiverName:'',
+              text:'',
+              conversationFor:'',
+              members:[success.senderId,success.receiverId]
+             
+            })
+
+            const newconversation = new conversationSchema({
+             
+              senderName: '',
+              receiverName:'',
+              text:'',
+              conversationFor:'',
+              members:[success.receiverId, success.senderId],
+          
+            })
+
+
+              
+
+            if(findUser[0]._id.toString() === senderId ){
+              console.log(success.text)
+              conversation.senderName = findUser[0].name;
+              conversation.receiverName = findUser[1].name; 
+              conversation.text = success.text
+              conversation.conversationFor = findUser[0]._id
+
+
+              newconversation.senderName = findUser[1].name;
+              newconversation.receiverName = findUser[0].name; 
+              newconversation.text = success.text
+              newconversation.conversationFor = findUser[1]._id
+            }else{
+              console.log(success.text)
+              conversation.senderName = findUser[1].name;
+              conversation.receiverName = findUser[0].name;
+              conversation.text = success.text
+              conversation.conversationFor = findUser[1]._id
+
+
+              newconversation.senderName = findUser[0].name;
+              newconversation.receiverName = findUser[1].name; 
+              newconversation.text = success.text
+              newconversation.conversationFor = findUser[0]._id
+
+            }
+
+            conversation.save()
+            newconversation.save()
+            res.status(200).json(success);
+            console.log(success)
+
+          }
+        })
+
+
+
+
+
+
+
+         
+          }
+        })
+
+      }
+    });
+    
+  } catch (err) {
+    res.status(500).json(err)
+  }
+}
+
+//end send msg
+
+
+
+// conversation
+export const getConversationId = async(req, res) =>{
+
+  const { limit, offset } = req.query;
+  
+  try {
+    const messages = await messageSchema.find({
+      $or: [
+        { senderId: req.params.Id, receiverId: req.params.Id2 },
+        { senderId: req.params.Id2, receiverId: req.params.Id },
+      ],
+
+    }).sort({date:-1}).skip(parseInt(offset)).limit(limit);
+
+    
+ 
+
+   console.log(messages)
+
+
+    let array= []
+
+    for(const item of messages){
+
+      const user = await userschema.findById(item.senderId)    
+      const createdAt = moment(item.date);
+      const now = moment()
+      const duration = moment.duration(now.diff(createdAt));
+
+      const years = duration.years();
+      const months = duration.months();
+      const days = duration.days();
+
+      const date = moment(item.date);
+      const getFormattedDate = (date)=>{
+        if( Math.abs(years) ){
+          return `${date.format('MMM DD YYYY')} AT ${date.format('hh:mm A')} `
+        }
+        else if(Math.abs(months)){
+          return `${date.format('MMM DD')} AT ${date.format('hh:mm A')} `
+        }
+        else if(days){         
+          return `${date.format('ddd')} AT ${date.format('hh:mm A')} `
+        }else {
+          return date.format('hh:mm A')
+        }    
+    }
+
+      if(item.senderId === req.params.Id){
+        console.log('sender,,,', item.text)
+        const profPic = await profileSchema.findOne({
+          $or:[
+            {Id:req.params.Id},
+           
+          ]
+        })
+
+
+
+        array.push({messageId:item._id, profile:profPic.profilePic, iSend: item.senderId, name:user.name, text:item.text, Date:getFormattedDate(date)})
+      }else if(item.senderId === req.params.Id2){
+
+        const profPic = await profileSchema.findOne({
+          $or:[
+            {Id:req.params.Id2},
+           
+          ]
+        })
+
+
+        console.log('reciever,,,,', item.text) 
+        array.push({messageId:item._id, profile:profPic.profilePic, whoSend: item.senderId, name:user.name, text:item.text, Date: getFormattedDate(date)})
+      }
+    }
+    res.status(200).json(array.reverse());
+
+console.log(array)
+   
+
+
+
+
+ 
+
+
+
+  } catch (err) {
+    res.status(500).json(err);
+  }
+}
+
+ 
+
+
+
+
+//profile
+export const profile = async (req, res) =>{
+  const domain = req.hostname
+  const id = req.params.id
+
+  try {
+ const userProfile = await profileSchema.findOne({
+  Id:id
+ })
+
+ const userEmail = await userschema.findOne({
+  _id:id
+ })
+
+ 
+
+
+console.log(userProfile)
+
+if(userProfile){
+  res.status(201).send({id:userProfile.Id,profilePic:userProfile.profilePic, name:userProfile.name, username:userProfile.username, email:userEmail.email, domain:domain })
+}
+
+
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+//profile picture update
+
+export const profilePicUpdate = async (req, res) =>{
+  const id = req.params.id
+  const pic = req.body.profilePic
+  try {
+    
+    const update = await profileSchema.findOneAndUpdate({
+     Id:id
+    },
+    {
+      $set:{
+        profilePic:pic
+      }
+    },
+    {
+      new:true
+    })
+
+if(update){
+  res.status(201).send({newPic:update.profilePic})
+}
+
+
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+// update username
+
+export const userName = async(req, res) =>{
+  const id = req.params.id
+  const usernames = req.body.username.toLowerCase()
+  const usernameRegex = /^[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*$/;
+  try {
+
+    // const find = await userschema.findById({
+    
+    //    _id:id
+      
+      
+    // })
+
+    // const find2 = await profileSchema.findOne({
+   
+        
+    //     Id :id
+   
+    // })
+
+   const find = await userschema.findOne({
+
+username:usernames
+    
+   
+   })
+
+  
+// console.log(find)
+
+  if(find){
+      if(find._id.valueOf() === id){
+        console.log('its your currenn username')
+        res.status(409).send({msg:'its your current username'})
+      }else{
+        console.log('username exist')
+        res.status(409).send({msg:'Usernames exist'})
+      }
+  }else{
+ 
+    
+      
+    if(!usernameRegex.test(usernames)){
+    res.status(401).send({msg:'incorrect format'})
+    }else{
+    if(Object.keys(usernames).length < 5 ){
+      res.status(401).send({msg:'Usernames must be at least 5 characters long.'})
+    }else{
+      const username = await userschema.findOneAndUpdate({
+        _id:id
+      },
+      {
+        $set:{username:usernames}
+      },
+      {
+        new:true
+      }
+      )
+    
+      const profileUsername = await profileSchema.findOneAndUpdate({
+        Id:id
+      },
+      {
+        $set:{ username: usernames}
+      },
+      {
+        new:true
+      }
+      )
+    
+      res.status(201).send({msg:'username update successfully!', username:profileUsername.username})
+      }
+    }
+    
+    
+    
+    
+  }
+
+
+
+ 
+//   if(find){
+//     if(find.username === usernames ){
+    
+//         res.status(409).send({msg:'username alreaady exist'})
+   
+
+     
+//     }else{
+// if(!usernameRegex.test(usernames)){
+// res.status(401).send({msg:'incorrect format'})
+// }else{
+// if(Object.keys(usernames).length < 5 ){
+//   res.status(401).send({msg:'Usernames must be at least 5 characters long.'})
+// }else{
+//   const username = await userschema.findOneAndUpdate({
+//     _id:id
+//   },
+//   {
+//     $set:{username:usernames}
+//   },
+//   {
+//     new:true
+//   }
+//   )
+
+//   const profileUsername = await profileSchema.findOneAndUpdate({
+//     Id:id
+//   },
+//   {
+//     $set:{ username: usernames}
+//   },
+//   {
+//     new:true
+//   }
+//   )
+
+//   res.status(201).send({msg:'username update successfully!', username:profileUsername.username})
+//   }
+// }
+
+
+// }
+//   }
+  
+
+  
+
+
+  
+
+
+  } catch (error) {
+    console.log(error)
+  }
+
+}
+
+
+//update name
+
+export const Name = async(req, res) =>{
+  const id = req.params.id
+  const names = req.body.name
+  const nameRegex =  /^[a-zA-Z\s]+$/;
+
+
+
+
+
+
+
+
+  try {
+
+    const find = await userschema.findOne({
+     
+        _id:id
+      
+      
+    })
+
+    const find2 = await profileSchema.findOne({
+      
+    
+        Id: id
+      
+    })
+
+
+    
+    const createdAt = moment(find2.date);
+    const now = moment()
+    const duration = moment.duration(now.diff(createdAt));
+    
+  
+    const years = duration.years();
+    const months = duration.months();
+    const days = duration.days();
+
+    console.log(months)
+  
+
+if(find){
+  if(Object.keys(names).length < 3){
+    res.status(401).send({msg:'names must be at least 3 characters long.'})
+  }else{
+
+    if(!nameRegex.test(names)){
+      res.status(401).send({msg:'Invalid name'})
+    }else{
+      if(Math.abs(months) <= 1 ){
+  
+        res.status(401).send({msg:'Wait for one month to change the name again!'})
+      }else{
+      
+        
+            const username = await userschema.findOneAndUpdate({
+              _id:id
+            },
+            {
+              $set:{name:names , date: new Date()}
+            },
+            {
+              new:true
+            }
+            )
+          
+            const profileUsername = await profileSchema.findOneAndUpdate({
+              Id:id
+            },
+            {
+              $set:{ name: names, date: new Date()}
+            },
+            {
+              new:true
+            }
+            )
+          
+            res.status(201).send({msg:'name update successfully!', name:profileUsername.name})
+            
+        
+      
+      
+      
+      
+      }
+    }
+  
+
+  
+  
+  }
+}
+   
+
+
+
+ 
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  } catch (error) {
+    console.log(error)
+  }
+
+}
+
+
+export const disable = async (req , res) =>{
+ const {id, username , title, text} = req.body
+  try {
+    const {_id} = await userschema.findOne({
+      username : username
+    })
+  
+    const response = await disableSchema.findOne({
+      $or:[
+       { Id:_id},
+       {username:username}
+      ]
+      
+    })
+
+    if(!response){
+      const insert = new disableSchema({
+        Id: _id,
+        username: username,
+        Title:title,
+        Text:text
+      })
+
+      insert.save()
+      
+      if(insert){
+        res.status(201).send({msg:'inserted'})
+      }
+    }
+
+  } catch (error) {
+    
+  }
+
+
+}
+
+
+export const test = async (req, res) =>{
+
+
+  const imageFile = req.file;
+console.log(imageFile)
+const domain = req.hostname
+
+let url
+if(imageFile !== undefined){
+ url = `${domain}/${imageFile.destination}/${imageFile.filename}`
+}
+
+if (imageFile === undefined){
+  console.log("Your IP Addresss is: " + req.socket.localAddress)
+  res.status(400).json({ msg: "File not selected" });
+}else{
+  res.status(201).json({ msg: "File uploaded successfully", url });
+}
+
+
+
+
+
+}

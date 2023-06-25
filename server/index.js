@@ -19,10 +19,29 @@ import bodyParser from "body-parser"
 //import cookie parser
 import cookieParser from "cookie-parser"
 import  IpFilter  from "express-ipfilter"
+
+
+
+
+
 //env for secret credentials
 const port = process.env.PORT || 8000
 
+
+
 const app = express()
+
+// Specify the directory where the images are stored
+app.use('/uploads', express.static('uploads'));
+
+
+
+
+
+
+
+
+
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -39,9 +58,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Define the catch-all route for all other requests
-app.get('*', (req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public/error.html'));
-});
+// app.get('*', (req, res) => {
+//   res.status(404).sendFile(path.join(__dirname, 'public/error.html'));
+// });
 
 
 
