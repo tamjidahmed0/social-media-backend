@@ -1,15 +1,29 @@
 import conversationSchema from "../models/conversation.js";
 import profileSchema from "../models/profile.js";
 import moment from "moment";
+import mongoose from "mongoose";
+import unReadSchema from "../models/unReadMsg.js";
+
 
 const conversations = async (req, res) => {
-  const userId = req.params.userId;
-
+  const userId =  req.params.userId;
+  // const userId = mongoose.Types.ObjectId(req.params.userId)
+  // const userId = req.params.userId;
+console.log(userId , 'user id')
   try {
     //find conversation in conversationSchema
     const conversation = await conversationSchema.find({
-      conversationFor: userId,
+      conversationFor:userId,
     });
+
+    const unread = await unReadSchema.find({receiverId : userId})
+
+    const countsMap = new Map(unread.map(({ senderId, count }) => [senderId.toString(), count]));
+
+  
+
+
+    // console.log(countsMap, 'countsmap')
 
     //store data in array
     let names = [];
@@ -66,10 +80,20 @@ const conversations = async (req, res) => {
       })
     );
 
-    console.log(names);
-    res.status(200).send(names);
+
+ 
+    const mergedArray = names.map(user => ({
+      ...user,
+     unReadMsgCount: countsMap.get(user.Id) || 0
+      
+    }));
+
+    console.log(mergedArray)
+    // console.log(names);
+    res.status(200).send(mergedArray);
   } catch (error) {
     res.status(500).json(error);
+    console.log(error)
   }
 };
 

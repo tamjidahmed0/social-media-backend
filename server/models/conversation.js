@@ -28,7 +28,7 @@ const conversationSchema = new mongoose.Schema({
         type:Array
     },
     conversationFor: {
-        type:String
+        type:mongoose.Types.ObjectId
     },
     // userId:{
     //     type:String

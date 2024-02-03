@@ -1,7 +1,11 @@
 import fs from "fs";
 import userschema from "../models/user.js";
+import userOtp from '../models/otp.js'
 import jwt from "jsonwebtoken";
 import nodemailerConfig from "../config/node-mailer.js";
+import session from "express-session";
+
+
 // user Registration
 const register = async (req, res) => {
   try {
@@ -20,6 +24,19 @@ const register = async (req, res) => {
           // generate random 6 digit code
           const randomNumber = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
           const otp = randomNumber;
+
+          req.session.otp = otp
+          req.session.name = name
+          req.session.username = username
+          req.session.email = email
+          req.session.password = password
+
+
+
+
+
+
+
           //jwt token sign
           const token = jwt.sign(
             {
@@ -28,6 +45,12 @@ const register = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "3min" }
           );
+
+
+
+
+
+
 
           //store all data to user otp collection
           const userotp = new userOtp({
@@ -44,7 +67,7 @@ const register = async (req, res) => {
 
           //mail details
           const mailOptions = {
-            from: `chat app <${process.env.GMAIL}>`,
+            from: `Chat App <${process.env.GMAIL}>`,
             to: `${email}`,
             subject: "OTP for your account",
           };

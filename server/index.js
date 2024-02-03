@@ -34,21 +34,32 @@ const app = express()
 // Specify the directory where the images are stored
 app.use('/uploads', express.static('uploads'));
 
+app.use('/public', express.static('public'));
 
 
 
 
 
+app.use(session({
+  secret: 'your-secret-key',
+  
+  resave: false,
+  saveUninitialized: true,
+  cookie:{
+    maxAge:2 * 60 * 1000,
+   httpOnly:true
+  } 
+}));   
+ 
 
 
 
-
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    // res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-  });
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+//     // res.header('Access-Control-Allow-Credentials', 'true');
+//     next();
+//   });
 
 
 

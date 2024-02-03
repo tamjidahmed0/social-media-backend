@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import userSchema from "../models/user.js";
 import { uploadHelper } from "../helper/index.js";
-import { error } from "console";
+
 
 const UploadImage = (req, res, next) => {
   const uploadFolder = "uploads";
@@ -30,7 +30,7 @@ const UploadImage = (req, res, next) => {
     },
   });
 
-  const upload = multer({ storage: storage, limits:{fileSize:2000000},
+  const upload = multer({ storage: storage, limits:{fileSize:1000000000},
      fileFilter: (req , file , cb) =>{
         if(file.mimetype === 'image/png'|| file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg'){
           cb(null , true)
@@ -47,7 +47,7 @@ const UploadImage = (req, res, next) => {
 
       if (user) {
         upload(req, res, (err) => {
-          if (err) {
+          if (err) { 
             console.log(err)
             console.log(err.code);
             if(err.code === 'LIMIT_FILE_SIZE'){

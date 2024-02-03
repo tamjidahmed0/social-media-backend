@@ -34,15 +34,15 @@ const UserSchema = new schema({
 })
 
 
-// UserSchema.pre('save', async function (next){
-// const user = this
+UserSchema.pre('save', async function (next){
+const user = this
 
-// if(user.isModified('password')){
-// const salt = await bcrypt.genSalt(10)
-// // user.password = await bcrypt.hash(user.password,salt)
-// next()
-// }
-// })
+if(user.isModified('password')){
+const salt = await bcrypt.genSalt(10)
+user.password = await bcrypt.hash(user.password,salt)
+next()
+}
+})
 
 
 const collection = mongoose.model('user', UserSchema);

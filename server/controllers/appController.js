@@ -9,6 +9,10 @@ import conversationSchema from '../models/conversation.js'
 import messageSchema from '../models/message.js'
 import profileSchema from '../models/profile.js'
 import disableSchema from '../models/disable.js'
+import videoCountSchema from '../models/videoCount.js'
+
+import tf from '@tensorflow/tfjs-node'
+import path from 'path'
 
 //import bcrypt for password hash or compire
 import bcrypt from 'bcrypt'
@@ -16,6 +20,7 @@ import bcrypt from 'bcrypt'
 import nodemailerConfig from '../config/node-mailer.js'
 //import jwt token
 import jwt from 'jsonwebtoken'
+
 
 
 import moment from 'moment'
@@ -109,122 +114,190 @@ import multer from 'multer';
 
 
 //otp verification
-export const otp = async (req, res)=>{
+// export const otp = async (req, res)=>{
 
-  try {
-      //check undefiend headers
-      if(req.headers.authorization === undefined){
-        res.status(400).send({msg:'Need token'})
-      }else{
-        //collect otp from body
-      const otp = req.body
-        //split the bearer token
-        let token
-        const {authorization} = req.headers
-        token = authorization.split(' ')[1]
+//   try {
+//       //check undefiend headers
+//       if(req.headers.authorization === undefined){
+//         res.status(400).send({msg:'Need token'})
+//       }else{
+//         //collect otp from body
+//       const otp = req.body
+//         //split the bearer token
+//         let token
+//         const {authorization} = req.headers
+//         token = authorization.split(' ')[1]
        
-        //verify the jwt token with jwt secret
-        jwt.verify(token, process.env.JWT_SECRET, (err, user)=>{
-          if(err) return res.status(400).send({msg:'OTP expired'}) 
-          if(user){
+//         //verify the jwt token with jwt secret
+//         jwt.verify(token, process.env.JWT_SECRET, (err, user)=>{
+//           if(err) return res.status(400).send({msg:'OTP expired'}) 
+//           if(user){
 
-console.log(otp.otp)
-          //find the user in otp collection using token
-          userOtp.findOne({ token:token }, (err, users) => {
-          if(err) return res.send('err')
-          if(users){
-          //if find then match the token
-          if(users.token === token) {
+// console.log(otp.otp)
+//           //find the user in otp collection using token
+//           userOtp.findOne({ token:token }, (err, users) => {
+//           if(err) return res.send('err')
+//           if(users){
+//           //if find then match the token
+//           if(users.token === token) {
 
-            if(Object.keys(otp.otp).length === 0){
-              res.status(400).send({msg:'please enter code'})
-            }else{
-                //compare the pass that store in database as an encryped form
-                bcrypt.compare(otp.otp, users.otp , (err, result)=>{
-                  if(err) return res.status(400).send({msg:'error'})
-                  if(result){
-                  //if success then find it and delete using token
-                   userOtp.findOneAndDelete({token:token}, (err, success)=>{
-                    if(err) return res.status(400).send({msg:'Error'})
-                    if(success){
-                  //Refresh Token
-                    const refreshToken = jwt.sign({
-                        username : success.username
-                    }, process.env.JWT_SECRET_REFRESH , { expiresIn : "1y"});
-                  //after delete stored data to main collection
-                   const userData = new userschema({ 
-                      name:success.name,
-                      username:success.username,
-                      email:success.email,
-                      password:success.password,
-                      refreshToken: refreshToken
+//             if(Object.keys(otp.otp).length === 0){
+//               res.status(400).send({msg:'please enter code'})
+//             }else{
+//                 //compare the pass that store in database as an encryped form
+//                 bcrypt.compare(otp.otp, users.otp , (err, result)=>{
+//                   if(err) return res.status(400).send({msg:'error'})
+//                   if(result){
+//                   //if success then find it and delete using token
+//                    userOtp.findOneAndDelete({token:token}, (err, success)=>{
+//                     if(err) return res.status(400).send({msg:'Error'})
+//                     if(success){
+//                   //Refresh Token
+//                     const refreshToken = jwt.sign({
+//                         username : success.username
+//                     }, process.env.JWT_SECRET_REFRESH , { expiresIn : "1y"});
+//                   //after delete stored data to main collection
+//                    const userData = new userschema({ 
+//                       name:success.name,
+//                       username:success.username,
+//                       email:success.email,
+//                       password:success.password,
+//                       refreshToken: refreshToken
                   
-                    })
-                    //saved user
-                    userData.save((err,saved)=>{
-                      if(err) return res.status(400).send({msg:'Error'})
-                      if(saved){
-                         //jwt access token sign
-                          const token = jwt.sign({
-                          username : saved.username
-                          }, process.env.JWT_SECRET , { expiresIn : "3min"});
+//                     })
+//                     //saved user
+//                     userData.save((err,saved)=>{
+//                       if(err) return res.status(400).send({msg:'Error'})
+//                       if(saved){
+//                          //jwt access token sign
+//                           const token = jwt.sign({
+//                           username : saved.username
+//                           }, process.env.JWT_SECRET , { expiresIn : "3min"});
 
 
-                          const profile = new profileSchema({
-                            Id:saved._id,
-                            profilePic:'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
-                            name:saved.name,
-                            username:saved.username
-                          })
+//                           const profile = new profileSchema({
+//                             Id:saved._id,
+//                             profilePic:'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+//                             name:saved.name,
+//                             username:saved.username
+//                           })
 
-                          profile.save()
+//                           profile.save()
 
-                        res.status(201).send({msg:'verified' , otpPage:false, AccessToken:token, RefreshToken:refreshToken})
-                        console.log(saved)
-                      }
-                    })
+//                         res.status(201).send({msg:'verified' , otpPage:false, AccessToken:token, RefreshToken:refreshToken})
+//                         console.log(saved)
+//                       }
+//                     })
       
-                    }
-                   }) 
+//                     }
+//                    }) 
       
-                  }else{
-                    res.status(404).send({msg:'invalid code'})
+//                   }else{
+//                     res.status(404).send({msg:'invalid code'})
                     
-                  }
-                })
-            }
+//                   }
+//                 })
+//             }
 
 
 
                   
-          }
+//           }
       
-        }else{
-          res.status(404).send({msg:'OTP expired or invalid!'})
-        }
+//         }else{
+//           res.status(404).send({msg:'OTP expired or invalid!'})
+//         }
       
-        })
+//         })
             
 
-          }else{
+//           }else{
 
           
 
 
-           res.status(400).send({msg:'otp expired'})
-          }
-        })
+//            res.status(400).send({msg:'otp expired'})
+//           }
+//         })
 
       
         
-      } 
+//       } 
 
-    } catch (error) {
+//     } catch (error) {
      
-      console.log(error)
-    }
+//       console.log(error)
+//     }
       
-}
+// }
+
+
+
+// export const otp = async(req, res) =>{
+//   const {otp} = req.body
+
+//   const otpInt = parseInt(otp)
+// const domain = req.hostname
+  
+
+//   console.log(otpInt, 'otp come')
+
+//   try {
+  
+//     if(otpInt === req.session.otp){
+
+
+//       const userData = new userschema({
+//         name:req.session.name,
+//         username:req.session.username,
+//         email:req.session.email,
+//         password:req.session.password,
+//       })
+
+  
+
+
+//      const insertData = await userData.save()
+
+
+//      if(insertData){
+//       const profile = new profileSchema({
+//         Id:insertData._id,
+//         profilePic:`${domain}/public/default.jpg`,
+//         name:insertData.name,
+//         username:insertData.username
+//         })
+
+
+//         profile.save()
+
+        
+
+//         res.status(201).send({msg:'verified' , otpPage:false})
+//         req.session.destroy()
+//      }
+
+
+
+//      console.log(insertData)
+
+
+       
+//     }else{
+//       res.status(400).send({msg:'Otp not Match!'})
+//     }
+
+
+  
+     
+//   } catch (error) {
+//     console.log(error)
+//   }
+
+
+// }
+
+
 
 
 //Resend OTP
@@ -851,166 +924,7 @@ export const message = async(req, res)=> {
 
             console.log(findUser, 'come from finduser line 561')
 
-           
-
-
-          //  conversationSchema.find({
-          //   $or:[
-          //     {conversationFor: success.senderId},
-          //     {conversationFor: success.receiverId}
-          //   ]
           
-          //   }, async(err , find)=>{
-          //     if(err) return res.status(400).send({msg:'error'})
-          //     if(!find.length){
-
-          //       console.log(find, 'come from finduser line 576')
-          
-
-          //    console.log('it is running')   
- 
-
-
-
-
-
-          //     const conversation = new conversationSchema ({
-          //       Name:'',
-          //       conversationFor: '',
-          //       userId:'',
-          //       text:''
-          //     })
-
-          //     const newConversation = new conversationSchema ({
-          //       Name: '',
-          //       conversationFor:'',
-          //       userId:'',
-          //       text:''
-  
-          //      })
-
-          //    if(findUser[0]._id.toString() === senderId ){
-          //     console.log(success.text)
-          //     // conversation.senderName = findUser[0].name;
-          //     // conversation.receiverName = findUser[1].name; 
-          //     conversation.Name = findUser[0].name
-          //     conversation.conversationFor= findUser[1]._id
-          //     conversation.userId = findUser[0]._id
-          //     conversation.text = success.text
-
-
-
-
-          //    newConversation.Name = findUser[1].name;
-          //    newConversation.conversationFor= findUser[0]._id
-          //    newConversation.userId= findUser[1]._id
-          //    newConversation.text = success.text
-          //   }else{
-          //     console.log(success.text)
-          //     // conversation.senderName = findUser[1].name;
-          //     conversation.Name = findUser[1].name;
-          //     conversation.conversationFor= findUser[0]._id
-          //     conversation.userId = findUser[0]._id
-          //     conversation.text = success.text
-
-
-         
-
-
-          //    newConversation.Name = findUser[0].name;
-          //    newConversation.conversationFor= findUser[1]._id
-          //    newConversation.userId= findUser[0]._id
-          //    newConversation.text = success.text
-
-
-          //    conversationSchema.findOne({
-
-          //    })
-
-
-          //   }
-
-          //   conversation.save()
-          //   newConversation.save()
-          //   res.status(200).json(success);
-          //   console.log(success)
-
-
-
-          //     }else{
-          //       console.log(find , 'come from find line 638')
-
-
-          //       const filter = {
-          //         $or: [
-          //           { conversationFor: success.senderId },
-          //           { conversationFor: success.receiverId }
-          //         ]
-          //       };
-
-          //       const update = {
-          //         $set: {
-          //           text: success.text,
-          //           // updatedAt: new Date()
-          //         }
-          //       };
-                
-
-
-
-          //       try {
-          //         const result = await conversationSchema.updateMany(filter, update);
-
-          //         res.status(200).json(success);
-                
-          //         console.log(`Successfully updated documents`);
-          //       } catch (error) {
-          //         console.error('Error occurred while updating documents:', error);
-          //       }
-
-
-
-
-                // if(find[1].conversationFor === senderId){
-
-                //   await conversationSchema.findOneAndUpdate({
-                //     $or:[
-                //      {conversationFor:success.senderId},
-                //      {conversationFor:success.receiverId}
-                      
-                //     ]
-                //   },{
-                //     text: success.text,
-                    
-                //   })
-                  
-                 
-
-
-                // }else {
-                //   await conversationSchema.findOneAndUpdate({
-                //     $or:[
-                //       {conversationFor:success.senderId},
-                //      {conversationFor:success.receiverId}
-                      
-                //     ]
-                //   },{
-                //     text: success.text,
-                    
-                //   })
-                // }
-                
-
-                // res.status(200).json(success);
-               
-
-
-            //   }
-            // })
-        
-
-
-
         conversationSchema.find({ $or:[
           {members: {$all:[success.senderId, success.receiverId]}},
           {members: {$all:[success.receiverId, success.senderId]}}
@@ -1112,6 +1026,17 @@ export const message = async(req, res)=> {
   } catch (err) {
     res.status(500).json(err)
   }
+
+
+ 
+
+
+
+
+
+
+
+
 }
 
 //end send msg
@@ -1459,7 +1384,7 @@ export const Name = async(req, res) =>{
     const months = duration.months();
     const days = duration.days();
 
-    console.log(months)
+    console.log(months, 'months')
   
 
 if(find){
@@ -1470,7 +1395,7 @@ if(find){
     if(!nameRegex.test(names)){
       res.status(401).send({msg:'Invalid name'})
     }else{
-      if(Math.abs(months) <= 1 ){
+      if(!months){
   
         res.status(401).send({msg:'Wait for one month to change the name again!'})
       }else{
@@ -1579,21 +1504,30 @@ export const disable = async (req , res) =>{
 
 
 export const test = async (req, res) =>{
-
+const domain = req.hostname
 
   const imageFile = req.file;
 console.log(imageFile)
-const domain = req.hostname
+
 
 let url
 if(imageFile !== undefined){
- url = `${domain}/${imageFile.destination}/${imageFile.filename}`
+ url = `${imageFile.destination}/${imageFile.filename}`
 }
 
 if (imageFile === undefined){
-  console.log("Your IP Addresss is: " + req.socket.localAddress)
+
   res.status(400).json({ msg: "File not selected" });
 }else{
+
+
+
+
+  const profileupdate = await profileSchema.findOneAndUpdate({Id:req.params.id}, {profilePic:url}, {new:true})
+
+console.log(profileupdate, 'updated')
+
+
   res.status(201).json({ msg: "File uploaded successfully", url });
 }
 
@@ -1601,4 +1535,153 @@ if (imageFile === undefined){
 
 
 
+}
+
+
+export const video = async (req, res) =>{
+  const {videoId , userId , views} = req.body
+  const {viewersId} = req.query
+  const ipAddress = req.ip; // Get the user's IP address
+  const userAgent = req.get('User-Agent'); // Get the user's device information
+
+console.log(userAgent, 'user agent')
+
+console.log(viewersId)
+
+// if(viewersId === userId){
+
+// }else{
+//   let view = views
+  
+//   view++
+
+//   console.log(view)
+// }
+
+let initial = 0
+  try {
+
+
+
+  const find = await videoCountSchema.findOne({
+    userId
+  })
+
+  if(!find){
+
+
+    const insert = new videoCountSchema({
+      videoId,
+      userId,
+      views: initial
+    })
+
+    const data = await insert.save()
+   
+    console.log(data)
+
+
+
+
+    console.log(find.views)
+
+
+  }else{
+
+
+
+    if(viewersId === userId){
+      const update = await videoCountSchema.findOne({userId:userId})
+      res.status(201).send(update)
+    }else{
+      const update = await videoCountSchema.findOneAndUpdate({userId}, { $inc: { views: 1 } }, {new:true})
+  
+      console.log(update, 'hh')
+
+      res.status(201).send(update)
+    }
+
+
+
+  }
+
+
+ 
+
+  } catch (error) {
+    
+  }
+
+}
+
+
+
+export const image = async(req, res) =>{
+  try {
+    const __dirname = path.resolve();
+    
+ 
+      // Load the pre-trained model
+      const modelPath = path.join(__dirname, '..', 'server', 'classify', 'model.json');
+
+      if (fs.existsSync(modelPath)) {
+        console.log('Model file exists.');
+      } else {
+        console.log('Model file does not exist.');
+      }
+    
+      const model = await tf.loadLayersModel(`file://${modelPath}`);
+      console.log('Model loaded successfully.');
+    
+      const metadata = fs.readFileSync('../server/classify/metadata.json');
+    
+      // Preprocess the input image
+      const imageBuffer = fs.readFileSync('../server/uploads/64a0533e786b227f16d8ea22/profile/64a0533e786b227f16d8ea22-1688231611756.jpg');
+      const imageTensor = tf.node.decodeImage(imageBuffer);
+      const resizedImage = tf.image.resizeBilinear(imageTensor, [224, 224]);
+      const normalizedImage = resizedImage.div(tf.scalar(255));
+      const input = normalizedImage.expandDims();
+    
+      // Perform prediction
+      const prediction = model.predict(input) ;
+    
+      const output = prediction.dataSync();
+    
+    
+    
+    
+        // Find the class ID with the highest probability
+        const classId = output.indexOf(Math.max(...output));
+    
+      
+    
+    if(output[classId] >= 0.85){
+      console.log('Predicted Class ID:', classId);
+      const classname = JSON.parse(metadata).labels[classId]
+    
+        console.log('classname', JSON.parse(metadata).labels[classId])
+    
+        const probabilityScore = output[classId]
+    const percentage = probabilityScore * 100;
+
+    const predic = percentage.toFixed(2) + '% sure'
+    
+    console.log(percentage.toFixed(2) + '% sure');
+
+    res.status(201).send({classname:classname, prediction:predic})
+
+    }else{
+      console.log('not sure')
+    }
+    
+    
+      console.log('Prediction Output:', output[classId]);
+ 
+    
+    
+
+
+  } catch (error) {
+    console.log(error)
+  }
 }
