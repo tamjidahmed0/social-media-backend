@@ -15,8 +15,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false, // Use false if your server doesn't use SSL/TLS
   auth: {
-    user: 'contact@tamjidahmed.buzz',
-    pass: 'tamjid@97',
+    user: process.env.GMAIL,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
